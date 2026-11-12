@@ -1,0 +1,188 @@
+/* 标题屏 / 内容提示屏 / 结局卡 */
+
+/* 标题屏 */
+.title-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 24px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(232, 176, 75, 0.12), transparent 55%),
+    linear-gradient(180deg, #191531, #100e1a);
+}
+
+.title-screen__logo {
+  font-size: clamp(28px, 9vh, 56px);
+  font-weight: 900;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: var(--ink);
+  text-shadow: 4px 4px 0 var(--panel-edge), 8px 8px 0 rgba(232, 176, 75, 0.25);
+}
+
+.title-screen__sub {
+  font-size: clamp(10px, 2vh, 15px);
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  color: var(--ink-faint);
+  margin-bottom: clamp(10px, 4vh, 26px);
+}
+
+.title-screen__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 260px;
+}
+
+.title-screen__menu .pixel-btn {
+  text-align: center;
+}
+
+.title-screen__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  margin-top: clamp(14px, 5vh, 40px);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+/* 内容提示屏 */
+.warning-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #131028, #100e1a);
+  padding: 5%;
+}
+
+.warning-panel {
+  width: min(620px, 92%);
+  max-height: 90%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.warning-panel__title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+}
+
+.warning-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+}
+
+.warning-panel__list li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 15px;
+  color: var(--ink-dim);
+}
+
+.warning-panel__list li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 10px;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  box-shadow: 2px 2px 0 var(--panel-edge);
+}
+
+.warning-panel__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+/* 结局卡 */
+.ending-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(232, 176, 75, 0.1), transparent 50%),
+    linear-gradient(180deg, #151228, #0d0b16);
+}
+
+.ending-card {
+  width: min(680px, 90%);
+  max-height: 90%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 34px 40px;
+  text-align: center;
+}
+
+.ending-card__label {
+  font-size: 13px;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  color: var(--ink-faint);
+}
+
+.ending-card__name {
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  text-shadow: 4px 4px 0 var(--panel-edge);
+}
+
+.ending-card__name--good {
+  color: #a8d89a;
+}
+
+.ending-card__name--bittersweet {
+  color: #e8c88a;
+}
+
+.ending-card__name--heavy {
+  color: #c4524a;
+}
+
+.ending-card__desc {
+  font-size: 16px;
+  line-height: 1.9;
+  color: var(--ink-dim);
+}
+
+.ending-card__axes {
+  font-size: 12px;
+  color: var(--ink-faint);
+  line-height: 1.9;
+  border-top: 2px solid rgba(255, 255, 255, 0.08);
+  padding-top: 12px;
+}
+
+.ending-card__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 4px;
+}
