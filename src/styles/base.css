@@ -1,0 +1,114 @@
+/* 基础样式与设计令牌 — 沉默的回声 */
+
+:root {
+  --bg-page: #100e1a;
+  --bg-stage: #1c1830;
+  --ink: #ece6f2;
+  --ink-dim: #a99fc0;
+  --ink-faint: #6f6588;
+  --accent: #e8b04b;
+  --accent-deep: #b5822f;
+  --danger: #c4524a;
+  --good: #7a9e6b;
+  --line: #0c0a14;
+
+  --panel-bg: #241f3d;
+  --panel-edge: #0c0a14;
+
+  /* 像素中文字体占位：ASSET_LIST 定稿后在此接入授权字库 */
+  --font-body: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  --font-pixel: var(--font-body);
+
+  --tone-warm: #f0d8a8;
+  --tone-cold: #7d8fa8;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg-page);
+  color: var(--ink);
+  font-family: var(--font-body);
+  letter-spacing: 0.03em;
+  line-height: 1.6;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* 舞台：固定比例居中 */
+.stage-frame {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stage {
+  position: relative;
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  background: var(--bg-stage);
+  overflow: hidden;
+  box-shadow: 0 0 0 3px var(--panel-edge), 0 0 60px rgba(0, 0, 0, 0.6);
+}
+
+/* 色调层：D10 暖黄 / D12 冷灰蓝（STORY_BIBLE §7），由游玩根节点 data-tone 驱动 */
+.tone-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  mix-blend-mode: soft-light;
+  transition: background 0.8s ease;
+}
+
+.game-root[data-tone='warm'] .tone-overlay {
+  background: linear-gradient(180deg, rgba(240, 216, 168, 0.22), rgba(240, 216, 168, 0.05));
+}
+
+.game-root[data-tone='cold'] .tone-overlay {
+  background: linear-gradient(180deg, rgba(125, 143, 168, 0.28), rgba(70, 84, 108, 0.18));
+}
+
+/* 游玩根节点：填满舞台 */
+.game-root {
+  position: absolute;
+  inset: 0;
+}
+
+/* 通用文本 */
+.dim {
+  color: var(--ink-dim);
+}
+
+.faint {
+  color: var(--ink-faint);
+}
+
+.small {
+  font-size: 12px;
+}
