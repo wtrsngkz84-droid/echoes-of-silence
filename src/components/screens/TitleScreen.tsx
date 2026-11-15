@@ -13,7 +13,7 @@ export function TitleScreen() {
         <PixelButton variant="accent" onClick={() => setScreen('warning')}>
           开始游戏
         </PixelButton>
-        <PixelButton disabled={!state.hasMainSave} onClick={continueRun}>
+        <PixelButton disabled={!state.hasSave} onClick={continueRun}>
           继续游戏
         </PixelButton>
       </div>

@@ -91,7 +91,7 @@
 
 /* 冷色调教室（D12 起）由 stage[data-tone=cold] 的色调层统一压冷，不重复定义 */
 
-/* 走廊：纵深 + 红榜 */
+/* 走廊：纵深 + 公告栏（12/7 申报表公示的载体，V0.95 §5 时间线） */
 .scene--hallway {
   background: linear-gradient(180deg, #322c49 0%, #40385e 48%, #2a2440 48.3%, #232038 100%);
 }
@@ -133,7 +133,7 @@
 }
 
 .scene--hallway .deco--banner::after {
-  content: '红榜';
+  content: '公告栏';
   position: absolute;
   inset: 0;
   display: flex;

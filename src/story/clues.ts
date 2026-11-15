@@ -1,32 +1,55 @@
 import type { ClueDef } from '../engine/types';
 
 /**
- * 线索定义。factRef 对应 STORY_BIBLE 的 F 编号客观事实。
- * M0 切片线索 3 条；正式章节线索随 STORY_SCRIPT / GAMEPLAY_DESIGN 交付后扩充。
+ * 证据定义。id 与 factRef 均对应 STORY_BIBLE §4 的 EV-xx 编号。
+ * 当前为第一章（小满侧）可收集子集；其余证据随第二/三章剧情数据交付扩充。
  */
 export const CLUES: Record<string, ClueDef> = {
-  'clue-red-banner': {
-    id: 'clue-red-banner',
-    name: '只印了第一作者的红榜',
-    description: '市级评选报送署名是四个人，红榜上却只有"林小满等同学"。你在榜前站了很久。',
-    factRef: 'F-10',
-    chapters: ['ch1'],
-  },
-  'clue-full-chat': {
-    id: 'clue-full-chat',
+  'EV-01': {
+    id: 'EV-01',
     name: '完整的私聊记录',
     description:
-      '你手机里存着和陈屿的完整对话：那句"紧张的"后面，跟着"予安熬的三个通宵我都记着"。',
-    factRef: 'F-12',
+      '你和周予安 11/26 晚的完整对话。20:31 的肯定、20:36 的分工方案、20:58 的和解——每一句都在你的手机里。',
+    factRef: 'EV-01',
+    chapters: ['ch1', 'ch2', 'ch3'],
+  },
+  'EV-02': {
+    id: 'EV-02',
+    name: '裁剪截图与指控帖',
+    description:
+      '群里的截图只有你 20:33 发的那一句，配上「大家评评理」和「她专门去办公室找了老师」。截图里没有一个字是假的——假的是被裁掉的部分。',
+    factRef: 'EV-02',
+    chapters: ['ch1', 'ch2', 'ch3'],
+  },
+  'EV-03': {
+    id: 'EV-03',
+    name: '蓝色帆布草稿本',
+    description: '六版带日期的提纲，11/12–11/24。报告主体，是你一笔一笔写出来的。',
+    factRef: 'EV-03',
+    chapters: ['ch1'],
+  },
+  'EV-09': {
+    id: 'EV-09',
+    name: '匿名纸条',
+    description:
+      '「我不信那张截图。但我不敢在群里说。——对不起。」不知道是谁写的。知道有人不信，就够了。',
+    factRef: 'EV-09',
     chapters: ['ch1', 'ch3'],
   },
-  'clue-cropped-screenshot': {
-    id: 'clue-cropped-screenshot',
-    name: '被裁剪的截图',
-    description:
-      '群里流传的截图只有你 20:42 发的那一条。后面的解释、自责和那句"给视频署个大大的名"，全都不见了。',
-    factRef: 'F-14a',
+  'EV-10': {
+    id: 'EV-10',
+    name: '值日表照片',
+    description: '值日表上，你的名字被人划掉了。旁边一行小字：「她反正也不来」。',
+    factRef: 'EV-10',
     chapters: ['ch1', 'ch2', 'ch3'],
+  },
+  'EV-11': {
+    id: 'EV-11',
+    name: '成果归属表纸条',
+    description:
+      '「本组成果归属公示：林小满 100%，其余组员 0%。」你把它揉皱，又展平，收进了帆布包。',
+    factRef: 'EV-11',
+    chapters: ['ch1'],
   },
 };
 

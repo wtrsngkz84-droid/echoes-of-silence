@@ -89,7 +89,13 @@ export function PhoneChat({ run, node }: PhoneChatProps) {
         })}
       </div>
       <div className="phone-chat__foot">
-        {finished ? '▼ 点击继续' : <span className="blink">点击播放下一条…</span>}
+        {finished
+          ? '▼ 点击继续'
+          : (
+            <span className="blink">
+              ● 新消息 ×{messages.length - run.chatPlayed} · 点击播放
+            </span>
+          )}
       </div>
     </div>
   );

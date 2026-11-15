@@ -23,18 +23,17 @@ export function getNode(index: StoryIndex, nodeId: string): StoryNode {
   return node;
 }
 
-export function startChapter(index: StoryIndex, chapter: ChapterId, isEcho: boolean): RunState {
+export function startChapter(index: StoryIndex, chapter: ChapterId): RunState {
   const startId = index.chapterStarts[chapter];
   if (!startId) throw new Error(`章节 ${chapter} 尚未注册起始节点`);
   const base: RunState = {
-    runId: `${isEcho ? 'echo' : 'main'}-${Date.now().toString(36)}`,
+    runId: `run-${Date.now().toString(36)}`,
     chapter,
     currentNodeId: startId,
     flags: {},
     chatPlayed: 0,
     clues: [],
     visitedNodes: [],
-    isEcho,
   };
   return enterNode(base, index, startId);
 }

@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { applyFlags, readFlag, testCondition } from './conditions';
-import { evaluateEnding } from './endings';
+import { evaluateEnding, JUDGEMENT_VARS } from './endings';
 import {
   advanceNode,
   buildStoryIndex,
-  enterNode,
   chooseOption,
+  enterNode,
   startChapter,
   visibleChatMessages,
   visibleOptions,
 } from './engine';
-import type { ChapterId, RunState, StoryNode } from './types';
+import type { EndingId, RunState, StoryNode } from './types';
 
 function runOf(partial: Partial<RunState> = {}): RunState {
   return {
@@ -21,12 +21,11 @@ function runOf(partial: Partial<RunState> = {}): RunState {
     chatPlayed: 0,
     clues: [],
     visitedNodes: [],
-    isEcho: false,
     ...partial,
   };
 }
 
-describe('readFlag / testCondition', () => {
+describe('readFlag / testCondition 真值语法', () => {
   it('真值判断与 ! 取反', () => {
     const flags = { a: true, b: false, c: 0, d: 'x' };
     expect(readFlag(flags, 'a')).toBe(true);
@@ -51,11 +50,11 @@ describe('readFlag / testCondition', () => {
   });
 
   it('线索条件 clues / noClues', () => {
-    const run = runOf({ clues: ['clue-a'] });
-    expect(testCondition(run, { clues: ['clue-a'] })).toBe(true);
-    expect(testCondition(run, { clues: ['clue-a', 'clue-b'] })).toBe(false);
-    expect(testCondition(run, { noClues: ['clue-b'] })).toBe(true);
-    expect(testCondition(run, { noClues: ['clue-a'] })).toBe(false);
+    const run = runOf({ clues: ['EV-01'] });
+    expect(testCondition(run, { clues: ['EV-01'] })).toBe(true);
+    expect(testCondition(run, { clues: ['EV-01', 'EV-02'] })).toBe(false);
+    expect(testCondition(run, { noClues: ['EV-02'] })).toBe(true);
+    expect(testCondition(run, { noClues: ['EV-01'] })).toBe(false);
   });
 
   it('applyFlags 合并写入', () => {
@@ -64,25 +63,121 @@ describe('readFlag / testCondition', () => {
   });
 });
 
-describe('evaluateEnding（STORY_FLOW §4.1）', () => {
-  it('S2 优先级最高：S_early 或 W_asked_early → 及时止损', () => {
-    expect(evaluateEnding({ S_early: true, R_level: 2, W_asked_again: true })).toBe('timely');
-    expect(evaluateEnding({ W_asked_early: true })).toBe('timely');
+describe('readFlag 数值比较语法（v_* 变量，P-014）', () => {
+  it('支持 >= <= > < = == !=；变量缺省按 0', () => {
+    const flags = { v_xm_help: 2, v_zy_duty: -1 };
+    expect(readFlag(flags, 'v_xm_help>=2')).toBe(true);
+    expect(readFlag(flags, 'v_xm_help>=3')).toBe(false);
+    expect(readFlag(flags, 'v_xm_help>1')).toBe(true);
+    expect(readFlag(flags, 'v_xm_help<=2')).toBe(true);
+    expect(readFlag(flags, 'v_xm_help<2')).toBe(false);
+    expect(readFlag(flags, 'v_xm_help=2')).toBe(true);
+    expect(readFlag(flags, 'v_xm_help==2')).toBe(true);
+    expect(readFlag(flags, 'v_xm_help!=2')).toBe(false);
+    expect(readFlag(flags, 'v_zy_duty<=-1')).toBe(true);
+    expect(readFlag(flags, 'v_zy_duty=-1')).toBe(true);
+    expect(readFlag(flags, 'v_cy_echo=0')).toBe(true);
+    expect(readFlag(flags, 'v_cy_echo!=0')).toBe(false);
   });
 
-  it('R2 次之：R_level==2 → 责任的重量', () => {
-    expect(evaluateEnding({ R_level: 2, W_asked_again: true })).toBe('responsibility');
-    expect(evaluateEnding({ R_level: 1, W_asked_again: true })).toBe('again');
+  it('! 前缀对比较结果取反；true 按 1 参与比较', () => {
+    const flags = { v_xm_help: 1, v_cy_echo: true };
+    expect(readFlag(flags, '!v_xm_help>=2')).toBe(true);
+    expect(readFlag(flags, '!v_xm_help=1')).toBe(false);
+    expect(readFlag(flags, 'v_cy_echo=1')).toBe(true);
   });
 
-  it('S1：W_asked_again 或 S_late → 再次求助', () => {
-    expect(evaluateEnding({ W_asked_again: true })).toBe('again');
-    expect(evaluateEnding({ S_late: true })).toBe('again');
+  it('比较语法可用于 all / any / none 组合', () => {
+    const run = runOf({ flags: { v_xm_help: 2, v_zy_duty: 0 } });
+    expect(testCondition(run, { all: ['v_xm_help>=2', 'v_zy_duty<=0'] })).toBe(true);
+    expect(testCondition(run, { all: ['v_xm_help>=2', 'v_zy_duty=2'] })).toBe(false);
+    expect(testCondition(run, { none: ['v_xm_help=3'] })).toBe(true);
+    expect(testCondition(run, { any: ['v_xm_help=3', 'v_zy_duty=-1'] })).toBe(false);
+  });
+});
+
+/** GAMEPLAY_DESIGN §7.1 的独立重述，用于与引擎实现做表驱动比对 */
+function matrixReference(help: number, duty: number, act: number, echo: number): EndingId {
+  if (help >= 2 && duty === 2 && act >= 2 && echo === 0) return 'E5';
+  if (duty === 2) return 'E4';
+  if (help >= 2) return 'E3';
+  if (help === 0 && duty <= 0 && act === 0) return 'E1';
+  return 'E2';
+}
+
+describe('evaluateEnding 判定矩阵（GAMEPLAY_DESIGN §7.1）', () => {
+  it('E5 优先级最高：help>=2 且 duty=2 且 act>=2 且 echo=0', () => {
+    expect(evaluateEnding({ v_xm_help: 2, v_zy_duty: 2, v_cy_act: 2, v_cy_echo: 0 })).toBe('E5');
+    expect(evaluateEnding({ v_xm_help: 3, v_zy_duty: 2, v_cy_act: 3 })).toBe('E5');
   });
 
-  it('全空 → 沉默的代价；变量缺省按假处理', () => {
-    expect(evaluateEnding({})).toBe('silence');
-    expect(evaluateEnding({ S_early: false, R_level: 0 })).toBe('silence');
+  it('v_cy_echo=1 时封顶 E4：即使其余三值满足 E5 条件', () => {
+    expect(evaluateEnding({ v_xm_help: 2, v_zy_duty: 2, v_cy_act: 2, v_cy_echo: 1 })).toBe('E4');
+  });
+
+  it('E4 次之：duty=2（act 不足时同样命中）', () => {
+    expect(evaluateEnding({ v_xm_help: 2, v_zy_duty: 2, v_cy_act: 1 })).toBe('E4');
+    expect(evaluateEnding({ v_zy_duty: 2 })).toBe('E4');
+  });
+
+  it('E3：help>=2 且 duty!=2', () => {
+    expect(evaluateEnding({ v_xm_help: 2, v_cy_act: 2 })).toBe('E3');
+    expect(evaluateEnding({ v_xm_help: 3, v_zy_duty: 1 })).toBe('E3');
+  });
+
+  it('E1：help=0 且 duty<=0 且 act=0；变量缺省按 0，全空即 E1', () => {
+    expect(evaluateEnding({})).toBe('E1');
+    expect(evaluateEnding({ v_zy_duty: -1 })).toBe('E1');
+  });
+
+  it('E2 兜底：其余组合', () => {
+    expect(evaluateEnding({ v_xm_help: 1 })).toBe('E2');
+    expect(evaluateEnding({ v_zy_duty: 1 })).toBe('E2');
+    expect(evaluateEnding({ v_cy_act: 1 })).toBe('E2');
+  });
+
+  it('判定变量元数据与 GAMEPLAY_DESIGN §5 取值范围一致', () => {
+    expect(JUDGEMENT_VARS.map((v) => [v.key, v.min, v.max])).toEqual([
+      ['v_xm_help', 0, 3],
+      ['v_zy_duty', -1, 2],
+      ['v_cy_act', 0, 3],
+      ['v_cy_echo', 0, 1],
+    ]);
+  });
+
+  it('128 组合表驱动：与 §7.1 独立重述逐一一致，五个结局均可达', () => {
+    const rangeOf = (key: string) => {
+      const v = JUDGEMENT_VARS.find((item) => item.key === key);
+      if (!v) throw new Error(`JUDGEMENT_VARS 缺少 ${key}`);
+      return v;
+    };
+    const helpVar = rangeOf('v_xm_help');
+    const dutyVar = rangeOf('v_zy_duty');
+    const actVar = rangeOf('v_cy_act');
+    const echoVar = rangeOf('v_cy_echo');
+
+    let combos = 0;
+    const seen = new Set<EndingId>();
+    for (let help = helpVar.min; help <= helpVar.max; help++) {
+      for (let duty = dutyVar.min; duty <= dutyVar.max; duty++) {
+        for (let act = actVar.min; act <= actVar.max; act++) {
+          for (let echo = echoVar.min; echo <= echoVar.max; echo++) {
+            const label = `help=${help} duty=${duty} act=${act} echo=${echo}`;
+            const ending = evaluateEnding({
+              v_xm_help: help,
+              v_zy_duty: duty,
+              v_cy_act: act,
+              v_cy_echo: echo,
+            });
+            expect(ending, label).toBe(matrixReference(help, duty, act, echo));
+            combos += 1;
+            seen.add(ending);
+          }
+        }
+      }
+    }
+    expect(combos).toBe(128);
+    expect([...seen].sort()).toEqual(['E1', 'E2', 'E3', 'E4', 'E5']);
   });
 });
 
@@ -101,7 +196,7 @@ const storyNodes: StoryNode[] = [
     speaker: 'xiaoman',
     text: '选项节点',
     effects: { temp_a: true },
-    clueId: 'clue-a',
+    clueId: 'EV-01',
     options: [
       { id: 'C1-002-O1', text: '甲', goto: 'C1-003', effects: { path: 'a' } },
       {
@@ -119,7 +214,7 @@ const storyNodes: StoryNode[] = [
     chatTitle: '测试群',
     text: undefined,
     messages: [
-      { id: 'm1', side: 'left', sender: 'gaoxiang', text: '普通消息' },
+      { id: 'm1', side: 'left', sender: 'classmateA', text: '普通消息' },
       {
         id: 'm2',
         side: 'right',
@@ -145,26 +240,26 @@ const storyNodes: StoryNode[] = [
   },
 ];
 
-const index = buildStoryIndex(storyNodes, { ch1: 'C1-001' } as Partial<Record<ChapterId, string>>);
+const index = buildStoryIndex(storyNodes, { ch1: 'C1-001' });
 
 describe('engine 节点推进', () => {
   it('startChapter 从章节起始节点进入', () => {
-    const run = startChapter(index, 'ch1', false);
+    const run = startChapter(index, 'ch1');
     expect(run.currentNodeId).toBe('C1-001');
     expect(run.visitedNodes).toEqual(['C1-001']);
-    expect(run.isEcho).toBe(false);
+    expect(run.flags).toEqual({});
   });
 
   it('未注册章节不可开始', () => {
-    expect(() => startChapter(index, 'ch2', false)).toThrowError();
+    expect(() => startChapter(index, 'ch2')).toThrowError();
   });
 
   it('enterNode 应用 effects、收集线索、记录访问', () => {
     let run = enterNode(runOf(), index, 'C1-002');
     expect(run.flags.temp_a).toBe(true);
-    expect(run.clues).toEqual(['clue-a']);
+    expect(run.clues).toEqual(['EV-01']);
     run = enterNode(run, index, 'C1-002');
-    expect(run.clues).toEqual(['clue-a']);
+    expect(run.clues).toEqual(['EV-01']);
     expect(run.visitedNodes.filter((n) => n === 'C1-002')).toHaveLength(1);
     expect(run.chatPlayed).toBe(0);
   });
