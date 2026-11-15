@@ -529,3 +529,119 @@
   font-size: 12px;
   color: var(--ink-faint);
 }
+
+/* 小舞台响应式：舞台为 16:9 固定比例（base.css .stage），
+   视口宽 ≤720px 或高 ≤410px 时舞台高度不足，聊天窗（约 314px 高）会顶进顶栏——
+   分两档缩小聊天窗与顶栏，避免重叠。 */
+@media (max-width: 720px), (max-height: 410px) {
+  .game-topbar {
+    padding: 6px 8px;
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .game-topbar__title {
+    gap: 6px;
+  }
+
+  .topbar-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    box-shadow: 0 2px 0 var(--panel-edge);
+  }
+
+  .phone-chat {
+    width: 240px;
+    bottom: 6%;
+  }
+
+  .phone-chat__body {
+    height: 170px;
+    padding: 8px 6px;
+  }
+
+  .chat-msg__bubble {
+    font-size: 12px;
+  }
+
+  .chat-msg__screenshot {
+    width: 190px;
+  }
+
+  .choice-list {
+    bottom: 12%;
+    gap: 6px;
+  }
+
+  .choice-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 560px) {
+  .phone-chat {
+    width: 200px;
+    bottom: 4%;
+  }
+
+  .phone-chat__body {
+    height: 120px;
+    padding: 6px 4px;
+    gap: 5px;
+  }
+
+  .phone-chat__head {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .chat-msg__bubble {
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+
+  .chat-msg__sender {
+    font-size: 10px;
+  }
+
+  .chat-msg__screenshot {
+    width: 164px;
+  }
+
+  .shot-row__bubble {
+    font-size: 10px;
+  }
+
+  /* 选项压缩：极小视口下 4 个双行选项也要放得下（如 CP1 的 4 选项） */
+  .choice-list {
+    bottom: 3%;
+    width: 92%;
+    gap: 5px;
+    max-height: 88%;
+    overflow-y: auto;
+  }
+
+  .choice-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+    border-width: 2px;
+    box-shadow: 0 2px 0 var(--panel-edge);
+  }
+
+  .choice-btn__key {
+    margin-right: 6px;
+    padding: 0 6px;
+    font-size: 11px;
+    border-width: 1px;
+  }
+
+  .choice-btn__hint {
+    margin-top: 2px;
+    font-size: 10px;
+  }
+
+  .game-topbar__title .badge {
+    display: none;
+  }
+}

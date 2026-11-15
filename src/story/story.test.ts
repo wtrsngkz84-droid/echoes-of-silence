@@ -26,15 +26,13 @@ describe('剧情数据完整性', () => {
     }
   });
 
-  it('结局四张卡与引擎判定 id 一致', () => {
-    expect(Object.keys(ENDINGS).sort()).toEqual(
-      ['again', 'responsibility', 'silence', 'timely'].sort(),
-    );
+  it('结局五张卡与引擎判定 id 一致（STORY_BIBLE §12）', () => {
+    expect(Object.keys(ENDINGS).sort()).toEqual(['E1', 'E2', 'E3', 'E4', 'E5']);
   });
 
-  it('线索 factRef 均存在于 STORY_BIBLE 事实编号空间', () => {
+  it('线索 factRef 均引用 STORY_BIBLE 证据编号 EV-xx', () => {
     for (const clue of Object.values(CLUES)) {
-      expect(clue.factRef).toMatch(/^F-\d+[a-z]?$/);
+      expect(clue.factRef, clue.id).toMatch(/^EV-\d{2}$/);
     }
   });
 

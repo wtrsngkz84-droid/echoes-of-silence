@@ -1,19 +1,17 @@
 import type { ProgressMeta, RunState } from '../engine/types';
 
 /**
- * LocalStorage 存档（B-002）。
- * 双槽位：main = 首通记录，echo = 回声模式重玩（PRD 提案 D：回声不覆盖首通）。
- * meta 为跨局共享的进度图鉴：章节解锁、结局图鉴、线索图鉴。
- * 版本号变更时在 loadXxx 内增加迁移逻辑；解析失败按无存档处理，不抛错。
+ * LocalStorage 存档（B-002 / P-014）。
+ * 单存档槽 + 跨局 meta 图鉴：章节解锁、结局图鉴、线索图鉴。
+ * v2：随 P-014 结局矩阵与 v_* 变量对齐，废弃 M0 的双槽位（main/echo）；
+ * 旧 v1 档没有真实用户，不做迁移，版本不匹配按无存档处理。
+ * 解析失败按无存档处理，不抛错。
  */
 
-const SAVE_KEY_MAIN = 'eos.save.main.v1';
-const SAVE_KEY_ECHO = 'eos.save.echo.v1';
-const META_KEY = 'eos.meta.v1';
+const SAVE_KEY = 'eos.save.v2';
+const META_KEY = 'eos.meta.v2';
 
-const SAVE_VERSION = 1;
-
-export type SaveSlot = 'main' | 'echo';
+const SAVE_VERSION = 2;
 
 interface Envelope<T> {
   version: number;
@@ -48,17 +46,13 @@ export function setStorageBackendForTests(storage: StorageLike): void {
   defaultStorage = storage;
 }
 
-function slotKey(slot: SaveSlot): string {
-  return slot === 'main' ? SAVE_KEY_MAIN : SAVE_KEY_ECHO;
-}
-
 function readEnvelope<T>(key: string): Envelope<T> | null {
   try {
     const raw = defaultStorage.getItem(key);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Envelope<T>;
     if (typeof parsed !== 'object' || parsed === null) return null;
-    if (parsed.version !== SAVE_VERSION) return null; // 版本不匹配：待未来迁移逻辑
+    if (parsed.version !== SAVE_VERSION) return null; // 版本不匹配：按无存档处理
     return parsed;
   } catch {
     return null;
@@ -74,20 +68,20 @@ function writeEnvelope<T>(key: string, data: T): void {
   }
 }
 
-export function loadRun(slot: SaveSlot): RunState | null {
-  return readEnvelope<RunState>(slotKey(slot))?.data ?? null;
+export function loadRun(): RunState | null {
+  return readEnvelope<RunState>(SAVE_KEY)?.data ?? null;
 }
 
-export function saveRun(slot: SaveSlot, run: RunState): void {
-  writeEnvelope(slotKey(slot), run);
+export function saveRun(run: RunState): void {
+  writeEnvelope(SAVE_KEY, run);
 }
 
-export function clearRun(slot: SaveSlot): void {
-  defaultStorage.removeItem(slotKey(slot));
+export function clearRun(): void {
+  defaultStorage.removeItem(SAVE_KEY);
 }
 
-export function hasRun(slot: SaveSlot): boolean {
-  return loadRun(slot) !== null;
+export function hasRun(): boolean {
+  return loadRun() !== null;
 }
 
 export function loadMeta(): ProgressMeta {

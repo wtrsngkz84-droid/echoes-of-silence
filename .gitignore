@@ -3,3 +3,4 @@ dist
 *.local
 .tmp-scaffold
 .DS_Store
+.vite

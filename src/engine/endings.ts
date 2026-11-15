@@ -1,34 +1,45 @@
 import type { EndingId, Flags } from './types';
 
 /**
- * 结局判定 — 严格按 STORY_FLOW.md §4.1：
+ * 结局判定 — GAMEPLAY_DESIGN §7.1（STORY_BIBLE §12，对齐提案 P-014）。
  *
- *   S2 = S_early OR W_asked_early     （干预/求助在 D15 前生效）
- *   R2 = (R_level == 2)
- *   S1 = W_asked_again OR S_late      （D15~D16 迟到补救）
+ * 判定变量仅 4 个（缺省按 0）：
+ *   v_xm_help  小满求助达成度 0–3
+ *   v_zy_duty  予安责任轨迹 -1..+2
+ *   v_cy_act   陈屿行动等级 0–3
+ *   v_cy_echo  跟风负面标记 0–1
  *
- *   if  S2 → 及时止损
- *   elif R2 → 责任的重量
- *   elif S1 → 再次求助
- *   else    → 沉默的代价
- *
- * 优先级：及时止损 > 责任的重量 > 再次求助 > 沉默的代价。
- * 求值确定、互斥、无随机；变量缺省（未设置）按假处理。
+ * 判定顺序（短路，首个命中即结局；E2 为兜底，任何组合必落且仅落一个结局）：
+ *   1. E5 回声      v_xm_help>=2 且 v_zy_duty=2 且 v_cy_act>=2 且 v_cy_echo=0
+ *   2. E4 责任的重量 v_zy_duty=2（且未命中 E5；v_cy_echo=1 时封顶 E4）
+ *   3. E3 再次求助   v_xm_help>=2（且未命中 E4/E5）
+ *   4. E1 沉默的代价 v_xm_help=0 且 v_zy_duty<=0 且 v_cy_act=0
+ *   5. E2 及时止损   其余全部组合
  */
 export function evaluateEnding(flags: Flags): EndingId {
-  const s2 = truthy(flags, 'S_early') || truthy(flags, 'W_asked_early');
-  if (s2) return 'timely';
+  const help = numeric(flags, 'v_xm_help');
+  const duty = numeric(flags, 'v_zy_duty');
+  const act = numeric(flags, 'v_cy_act');
+  const echo = numeric(flags, 'v_cy_echo');
 
-  const r2 = flags.R_level === 2;
-  if (r2) return 'responsibility';
-
-  const s1 = truthy(flags, 'W_asked_again') || truthy(flags, 'S_late');
-  if (s1) return 'again';
-
-  return 'silence';
+  if (help >= 2 && duty === 2 && act >= 2 && echo === 0) return 'E5';
+  if (duty === 2) return 'E4';
+  if (help >= 2) return 'E3';
+  if (help === 0 && duty <= 0 && act === 0) return 'E1';
+  return 'E2';
 }
 
-function truthy(flags: Flags, key: string): boolean {
+/** 判定变量元数据：结局卡展示与表驱动测试共用 */
+export const JUDGEMENT_VARS: ReadonlyArray<{ key: string; label: string; min: number; max: number }> = [
+  { key: 'v_xm_help', label: '小满求助', min: 0, max: 3 },
+  { key: 'v_zy_duty', label: '予安责任', min: -1, max: 2 },
+  { key: 'v_cy_act', label: '陈屿行动', min: 0, max: 3 },
+  { key: 'v_cy_echo', label: '跟风标记', min: 0, max: 1 },
+];
+
+function numeric(flags: Flags, key: string): number {
   const raw = flags[key];
-  return raw !== undefined && raw !== false && raw !== 0 && raw !== '';
+  if (typeof raw === 'number') return raw;
+  if (raw === true) return 1;
+  return 0;
 }

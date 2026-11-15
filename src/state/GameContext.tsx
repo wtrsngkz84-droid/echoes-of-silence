@@ -19,7 +19,7 @@ import type {
 } from '../engine/types';
 import { CLUES } from '../story/clues';
 import { STORY_INDEX } from '../story/index';
-import { hasRun, loadMeta, loadRun, saveMeta, saveRun } from './save';
+import { clearRun, hasRun, loadMeta, loadRun, saveMeta, saveRun } from './save';
 
 interface SessionState {
   screen: ScreenId;
@@ -30,11 +30,11 @@ interface SessionState {
   cluePanelOpen: boolean;
   endingId: EndingId | null;
   meta: ProgressMeta;
-  hasMainSave: boolean;
+  hasSave: boolean;
 }
 
 type SessionAction =
-  | { type: 'START_RUN'; chapter: ChapterId; isEcho: boolean }
+  | { type: 'START_RUN'; chapter: ChapterId }
   | { type: 'CONTINUE_RUN'; run: RunState }
   | { type: 'ADVANCE' }
   | { type: 'CHOOSE'; optionId: string }
@@ -55,7 +55,7 @@ const initialState: SessionState = {
   cluePanelOpen: false,
   endingId: null,
   meta: loadMeta(),
-  hasMainSave: hasRun('main'),
+  hasSave: hasRun(),
 };
 
 interface RunTransition {
@@ -98,24 +98,28 @@ function settleRun(prev: SessionState, prevRun: RunState | null, nextRun: RunSta
 
 function persist(next: SessionState, prevRun: RunState | null): SessionState {
   if (!next.run) return next;
-  if (!prevRun || next.run.currentNodeId !== prevRun.currentNodeId) {
-    saveRun(next.run.isEcho ? 'echo' : 'main', next.run);
+  const finished = STORY_INDEX.nodes.get(next.run.currentNodeId)?.kind === 'ending';
+  if (finished) {
+    // 通关即失效：单局存档仅在局中有效，避免「继续游戏」把已结束的一局拉回结局卡
+    clearRun();
+  } else if (!prevRun || next.run.currentNodeId !== prevRun.currentNodeId) {
+    saveRun(next.run);
   }
   saveMeta(next.meta);
-  return next;
+  return { ...next, hasSave: !finished };
 }
 
 function reducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
     case 'START_RUN': {
-      const run = startChapter(STORY_INDEX, action.chapter, action.isEcho);
+      const run = startChapter(STORY_INDEX, action.chapter);
       const settled = settleRun(state, null, run);
       const next: SessionState = {
         ...state,
         ...settled,
         menuOpen: false,
         cluePanelOpen: false,
-        hasMainSave: action.isEcho ? state.hasMainSave : true,
+        hasSave: true,
       };
       return persist(next, null);
     }
@@ -126,7 +130,7 @@ function reducer(state: SessionState, action: SessionAction): SessionState {
         ...settled,
         menuOpen: false,
         cluePanelOpen: false,
-        hasMainSave: state.hasMainSave || !action.run.isEcho,
+        hasSave: true,
       };
       return persist(next, action.run);
     }
@@ -174,7 +178,7 @@ function reducer(state: SessionState, action: SessionAction): SessionState {
 
 interface GameContextValue {
   state: SessionState;
-  startRun: (chapter: ChapterId, isEcho?: boolean) => void;
+  startRun: (chapter: ChapterId) => void;
   continueRun: () => void;
   advance: () => void;
   choose: (optionId: string) => void;
@@ -196,9 +200,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const value = useMemo<GameContextValue>(
     () => ({
       state,
-      startRun: (chapter, isEcho = false) => dispatch({ type: 'START_RUN', chapter, isEcho }),
+      startRun: (chapter) => dispatch({ type: 'START_RUN', chapter }),
       continueRun: () => {
-        const run = loadRun('main') ?? loadRun('echo');
+        const run = loadRun();
         if (run) dispatch({ type: 'CONTINUE_RUN', run });
       },
       advance: () => dispatch({ type: 'ADVANCE' }),

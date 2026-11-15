@@ -22,74 +22,75 @@ function makeStorage(initial: Record<string, string> = {}): StorageLike {
 
 function sampleRun(over: Partial<RunState> = {}): RunState {
   return {
-    runId: 'main-test',
+    runId: 'run-test',
     chapter: 'ch1',
     currentNodeId: 'C1-005',
-    flags: { W_evidence: true, R_level: 0 },
+    flags: { v_xm_help: 2, v_did_teacher: true },
     chatPlayed: 3,
-    clues: ['clue-red-banner'],
+    clues: ['EV-01'],
     visitedNodes: ['C1-001', 'C1-005'],
-    isEcho: false,
     ...over,
   };
 }
 
-describe('LocalStorage 存档', () => {
+describe('LocalStorage 存档（单槽位 v2，P-014）', () => {
   it('run 存取往返一致', () => {
     setStorageBackendForTests(makeStorage());
-    saveRun('main', sampleRun());
-    expect(loadRun('main')).toEqual(sampleRun());
-    expect(hasRun('main')).toBe(true);
+    saveRun(sampleRun());
+    expect(loadRun()).toEqual(sampleRun());
+    expect(hasRun()).toBe(true);
   });
 
-  it('回声槽位与首通槽位互相隔离（PRD 提案 D）', () => {
+  it('单槽位覆盖保存只保留最新一局', () => {
     setStorageBackendForTests(makeStorage());
-    saveRun('main', sampleRun());
-    saveRun('echo', sampleRun({ isEcho: true, chapter: 'ch3', runId: 'echo-test' }));
-    expect(loadRun('main')?.isEcho).toBe(false);
-    const echo = loadRun('echo');
-    expect(echo?.isEcho).toBe(true);
-    expect(echo?.chapter).toBe('ch3');
+    saveRun(sampleRun());
+    saveRun(sampleRun({ currentNodeId: 'C1-901', flags: { v_zy_duty: 2 } }));
+    const run = loadRun();
+    expect(run?.currentNodeId).toBe('C1-901');
+    expect(run?.flags.v_zy_duty).toBe(2);
   });
 
   it('清除存档后读取为 null', () => {
     setStorageBackendForTests(makeStorage());
-    saveRun('echo', sampleRun({ isEcho: true }));
-    clearRun('echo');
-    expect(loadRun('echo')).toBeNull();
-    expect(hasRun('echo')).toBe(false);
+    saveRun(sampleRun());
+    clearRun();
+    expect(loadRun()).toBeNull();
+    expect(hasRun()).toBe(false);
   });
 
   it('空槽位读取返回 null 而非抛错；meta 缺省结构完整', () => {
     setStorageBackendForTests(makeStorage());
-    expect(loadRun('main')).toBeNull();
+    expect(loadRun()).toBeNull();
     const meta = loadMeta();
+    expect(meta.firstRunCompleted).toBe(false);
+    expect(meta.unlockedChapters).toEqual(['ch1']);
     expect(meta.endingsSeen).toEqual([]);
     expect(meta.clueLog).toEqual([]);
-    expect(meta.unlockedChapters).toEqual(['ch1']);
   });
 
-  it('meta 图鉴读写一致', () => {
+  it('meta 图鉴读写一致（结局 id 为 E1–E5）', () => {
     setStorageBackendForTests(makeStorage());
     saveMeta({
-      firstRunCompleted: false,
+      firstRunCompleted: true,
       unlockedChapters: ['ch1'],
-      endingsSeen: ['silence'],
-      clueLog: ['clue-a'],
+      endingsSeen: ['E1', 'E5'],
+      clueLog: ['EV-01'],
     });
-    expect(loadMeta().endingsSeen).toEqual(['silence']);
-    expect(loadMeta().clueLog).toEqual(['clue-a']);
+    const meta = loadMeta();
+    expect(meta.endingsSeen).toEqual(['E1', 'E5']);
+    expect(meta.clueLog).toEqual(['EV-01']);
+    expect(meta.firstRunCompleted).toBe(true);
   });
 
   it('损坏的存档 JSON / 版本号不匹配 按无存档处理', () => {
     setStorageBackendForTests(
       makeStorage({
-        'eos.save.main.v1': '{oops-not-json',
-        'eos.save.echo.v1': JSON.stringify({ version: 999, data: {} }),
+        'eos.save.v2': '{oops-not-json',
+        'eos.meta.v2': JSON.stringify({ version: 999, data: {} }),
       }),
     );
-    expect(loadRun('main')).toBeNull();
-    expect(loadRun('echo')).toBeNull();
+    expect(loadRun()).toBeNull();
+    expect(loadMeta().endingsSeen).toEqual([]);
   });
 
   it('存储后端抛错时静默失败，不中断游戏', () => {
@@ -102,7 +103,7 @@ describe('LocalStorage 存档', () => {
       },
       removeItem: () => undefined,
     });
-    saveRun('main', sampleRun());
-    expect(loadRun('main')).toBeNull();
+    saveRun(sampleRun());
+    expect(loadRun()).toBeNull();
   });
 });

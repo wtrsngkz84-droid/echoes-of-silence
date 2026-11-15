@@ -1,10 +1,11 @@
 /**
  * 剧情引擎类型定义 — 《沉默的回声》
  *
- * 节点数据结构提案（对应 STORY_FLOW.md §7，接口待产品确认后写入 DEV_HANDOFF）：
- * - 节点：C{章}{序号三位}，如 C1-007；尾声 CE-01
- * - 选项：节点号-O{序号}，如 C1-007-O2
- * - factRefs 引用 STORY_BIBLE 的 F 编号客观事实，供一致性校验
+ * 数据接口以产品 P2 定稿为准（STORY_BIBLE V0.95 / STORY_FLOW V0.9 / GAMEPLAY_DESIGN V0.9，
+ * 对齐提案 PROJECT_DECISIONS P-014）：
+ * - 节点：C{章}-{序号三位}，如 C1-005；STORY_FLOW 设计稿的两位编号（C1-05）在数据层统一补零为三位
+ * - 状态变量：v_* 命名（GAMEPLAY_DESIGN §5：4 判定变量 + 13 调味变量）
+ * - factRefs 引用 STORY_BIBLE 的 EV-01~EV-11 证据编号与 §5-A~L 原文编号
  */
 
 export type ChapterId = 'ch1' | 'ch2' | 'ch3' | 'epilogue';
@@ -29,12 +30,16 @@ export type NodeKind =
   | 'settlement'  // 章末结算（M1）
   | 'ending';     // 结局判定点：读取 flags 求值并展示结局卡
 
-/** 状态变量（STORY_FLOW §3 三轴字典；详见 TECHNICAL.md） */
+/** 状态变量（GAMEPLAY_DESIGN §5：v_* 四判定变量 + 13 调味变量；详见 TECHNICAL.md） */
 export type FlagValue = boolean | number | string;
 export type Flags = Record<string, FlagValue>;
 export type FlagPatch = Partial<Record<string, FlagValue>>;
 
-/** 条件表达式：flag 名以 '!' 前缀表示取反 */
+/**
+ * 条件表达式。引用语法：
+ * - 'flag' 真值判断（0、''、false、undefined 视为假）；'!flag' 取反
+ * - 'v_xm_help>=2' 数值比较（支持 >=、<=、>、<、=、==、!=；变量缺省按 0）
+ */
 export interface Condition {
   /** 全部为真 */
   all?: string[];
@@ -42,9 +47,9 @@ export interface Condition {
   any?: string[];
   /** 全部为假 */
   none?: string[];
-  /** 全部已收集的线索 id */
+  /** 全部已收集的证据 id（EV-xx） */
   clues?: string[];
-  /** 全部未收集的线索 id */
+  /** 全部未收集的证据 id（EV-xx） */
   noClues?: string[];
 }
 
@@ -57,7 +62,7 @@ export interface ScreenshotRow {
   time?: string;
 }
 
-/** 聊天截图内容（如 F-14a 裁剪版截图）：在消息内直接呈现原始聊天画面 */
+/** 裁剪截图内容（STORY_BIBLE §5-C：被裁掉的只剩 20:33 一条）：在消息内直接呈现原始聊天画面 */
 export interface ScreenshotContent {
   /** 截图内聊天窗口标题（如私聊对象名） */
   header: string;
@@ -118,11 +123,11 @@ export interface StoryNode {
   goto?: string;
   /** 进入本节点时写入的状态变量 */
   effects?: FlagPatch;
-  /** 本节点产出的线索 id */
+  /** 本节点产出的证据 id（EV-xx） */
   clueId?: string;
-  /** 结局节点备注（结局 id 由引擎按 STORY_FLOW §4.1 求值，不由剧本指定） */
+  /** 结局节点备注（结局 id 由引擎按 GAMEPLAY_DESIGN §7.1 求值，不由剧本指定） */
   endingNote?: string;
-  /** 引用的客观事实编号，如 ["F-14", "F-15"] */
+  /** 引用的证据/原文编号，如 ["EV-01", "§5-C"] */
   factRefs?: string[];
   /** 章节引子/结算等大标题 */
   title?: string;
@@ -130,7 +135,12 @@ export interface StoryNode {
   isPlaceholder?: boolean;
 }
 
-export type EndingId = 'timely' | 'responsibility' | 'again' | 'silence';
+/**
+ * 结局 id（STORY_BIBLE §12 / GAMEPLAY_DESIGN §7）：
+ * E1 沉默的代价 / E2 及时止损 / E3 再次求助 / E4 责任的重量 / E5 回声。
+ * 注意：判定顺序 E5→E4→E3→E1→E2（E2 兜底），与结局质量排序是两个概念。
+ */
+export type EndingId = 'E1' | 'E2' | 'E3' | 'E4' | 'E5';
 
 export interface EndingDef {
   id: EndingId;
@@ -145,7 +155,7 @@ export interface ClueDef {
   id: string;
   name: string;
   description: string;
-  /** 对应客观事实编号 */
+  /** 对应 STORY_BIBLE 证据编号（EV-xx）或原文编号（§5-X） */
   factRef?: string;
   /** 哪些视角可以收集到 */
   chapters: ChapterId[];
@@ -160,29 +170,27 @@ export interface CharacterDef {
   themeColor: string;
 }
 
-/** 一局游玩的状态（首通或回声各一份） */
+/** 一局游玩的状态（完整体验单槽位；3 分钟路径命名空间随 FR-13/M2 落地） */
 export interface RunState {
   runId: string;
-  /** 当前游玩章节（回声模式可重玩任一章） */
+  /** 当前游玩章节（通关后可从任一章重开，FR-09） */
   chapter: ChapterId;
   currentNodeId: string;
-  /** 全部状态变量（三轴 + 临时） */
+  /** 全部状态变量（v_* 判定/调味变量 + 临时标记） */
   flags: Flags;
   /** chat 节点内已播放的消息数 */
   chatPlayed: number;
-  /** 本局收集的线索 id */
+  /** 本局收集的证据 id（EV-xx） */
   clues: string[];
   visitedNodes: string[];
-  /** 是否回声模式（不覆盖首通存档，PRD 提案 D） */
-  isEcho: boolean;
 }
 
-/** 跨局持久化的进度图鉴（结局图鉴/线索图鉴/章节解锁，全局共享） */
+/** 跨局持久化的进度图鉴（结局图鉴/证据图鉴/章节解锁，全局共享） */
 export interface ProgressMeta {
   firstRunCompleted: boolean;
   unlockedChapters: ChapterId[];
   endingsSeen: EndingId[];
-  /** 线索图鉴：任意局中收集过的线索 */
+  /** 证据图鉴：任意局中收集过的证据 */
   clueLog: string[];
 }
 
