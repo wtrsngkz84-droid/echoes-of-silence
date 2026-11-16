@@ -131,7 +131,7 @@ export interface StoryOption {
 export interface StoryNode {
   id: string;
   chapter: ChapterId;
-  /** 节拍号，如 B1-5（STORY_FLOW §2） */
+  /** 场景节拍/日期锚点，如 '群聊之夜 11/27' */
   beat?: string;
   kind: NodeKind;
   scene?: SceneKey;

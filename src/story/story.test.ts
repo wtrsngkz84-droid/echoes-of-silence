@@ -54,6 +54,17 @@ describe('剧情数据完整性', () => {
     }
   });
 
+  it('选项 hint 仅含玩家向文案，不含内部变量或文档编号', () => {
+    for (const node of STORY_INDEX.nodes.values()) {
+      for (const option of node.options ?? []) {
+        if (!option.hint) continue;
+        expect(option.hint, `${node.id}/${option.id}`).not.toMatch(
+          /v_|§|EV-|STORY_|GAMEPLAY|默认路径/,
+        );
+      }
+    }
+  });
+
   it('C1-005 群消息段启用 autoFlood，裁剪截图带完整上下文与 4 处断口', () => {
     const node = STORY_INDEX.nodes.get('C1-005');
     expect(node?.autoFlood).toBe(true);
