@@ -91,8 +91,14 @@ export function validateStory(
       if (typeof node.typing?.final !== 'string') {
         issues.push({ level: 'error', nodeId: where, message: 'typing 节点缺少 typing.final' });
       }
-    } else if (!node.text) {
+    } else if (node.kind !== 'summary' && !node.text && !(node.variants?.length)) {
       issues.push({ level: 'error', nodeId: where, message: `非 chat 节点缺少 text` });
+    }
+
+    for (const variant of node.variants ?? []) {
+      if (!variant.text.trim()) {
+        issues.push({ level: 'error', nodeId: where, message: '文本变体缺少 text' });
+      }
     }
 
     if (node.autoFlood && node.kind !== 'chat') {

@@ -1,15 +1,15 @@
 import { buildStoryIndex } from '../engine/engine';
 import { hasBlockingIssues, validateStory } from '../engine/validation';
 import type { ChapterId, StoryIndex } from '../engine/types';
+import { CH1_NODES } from './ch1';
 import { CLUE_LIST } from './clues';
-import { CH1_SLICE_NODES } from './placeholder/ch1Slice';
 
 /**
  * 剧情注册表 — 唯一的剧情数据入口。
  * 新章节交付时：在此追加节点数组与 chapterStarts，勿改动引擎。
- * 当前注册：M0 竖切片（占位，见 src/story/placeholder/）。
+ * 当前注册：第一章正式剧本（STORY_SCRIPT V0.1）。
  */
-const ALL_NODES = [...CH1_SLICE_NODES];
+const ALL_NODES = [...CH1_NODES];
 
 const CHAPTER_STARTS: Partial<Record<ChapterId, string>> = {
   ch1: 'C1-001',

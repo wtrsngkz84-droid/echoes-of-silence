@@ -87,6 +87,14 @@ function optionVisible(run: RunState, option: StoryOption): boolean {
   return testCondition(run, option.requires);
 }
 
+/** 当前节点实际显示文本：首个满足条件的变体优先，否则用 text。 */
+export function visibleNodeText(run: RunState, node: StoryNode): string {
+  for (const variant of node.variants ?? []) {
+    if (testCondition(run, variant.requires)) return variant.text;
+  }
+  return node.text ?? '';
+}
+
 /** 当前节点满足显示条件的选项 */
 export function visibleOptions(run: RunState, node: StoryNode): StoryOption[] {
   return (node.options ?? []).filter((o) => optionVisible(run, o));

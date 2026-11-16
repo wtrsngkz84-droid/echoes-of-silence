@@ -21,6 +21,14 @@ export const CLUES: Record<string, ClueDef> = {
     factRef: 'EV-02',
     chapters: ['ch1', 'ch2', 'ch3'],
   },
+  'EV-06': {
+    id: 'EV-06',
+    name: '公示的分工说明页',
+    description:
+      '12/7 公告栏上的分工说明：周予安（组长/汇报/PPT）、林小满（报告执笔/走访/访谈整理）、郑晓芸（部分访谈）、陈屿（摄影/排版）。纸能澄清事实，不能自动澄清人心。',
+    factRef: 'EV-06',
+    chapters: ['ch1', 'ch2', 'ch3'],
+  },
   'EV-03': {
     id: 'EV-03',
     name: '蓝色帆布草稿本',

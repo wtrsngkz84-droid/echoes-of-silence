@@ -42,23 +42,41 @@ export const CHARACTERS: Record<string, CharacterDef> = {
     palette: { hair: '#4a3b33', skin: '#f2cfae', cloth: '#7a8c9d', accent: '#c0b49d' },
     themeColor: '#7a8c9d',
   },
-  classmateA: {
-    id: 'classmateA',
-    name: '起哄的同学',
-    palette: { hair: '#555', skin: '#e8c8a8', cloth: '#999', accent: '#bbb' },
-    themeColor: '#999999',
+  luoYiming: {
+    id: 'luoYiming',
+    name: '罗一鸣',
+    palette: { hair: '#3f3f46', skin: '#e8c8a8', cloth: '#5d6b7a', accent: '#9aa7b4' },
+    themeColor: '#9aa7b4',
   },
-  classmateB: {
-    id: 'classmateB',
-    name: '围观的同学',
-    palette: { hair: '#666', skin: '#e0c0a0', cloth: '#888', accent: '#aaa' },
-    themeColor: '#888888',
+  happyDuck: {
+    id: 'happyDuck',
+    name: '今天也要开心鸭',
+    palette: { hair: '#6b5b3f', skin: '#e8c8a8', cloth: '#a08a5a', accent: '#d9c27a' },
+    themeColor: '#d9c27a',
   },
-  classmateC: {
-    id: 'classmateC',
-    name: '疑问的同学',
-    palette: { hair: '#5c5348', skin: '#e8c8a8', cloth: '#8a8a7a', accent: '#b0b09a' },
-    themeColor: '#8a8a7a',
+  lemon: {
+    id: 'lemon',
+    name: '极速柠檬',
+    palette: { hair: '#4f4a2f', skin: '#e8c8a8', cloth: '#8a8a4f', accent: '#c9d16b' },
+    themeColor: '#c9d16b',
+  },
+  candy: {
+    id: 'candy',
+    name: '一颗奶糖',
+    palette: { hair: '#5a4a3f', skin: '#f0d0b0', cloth: '#b08a8a', accent: '#e0b4b4' },
+    themeColor: '#e0b4b4',
+  },
+  chips: {
+    id: 'chips',
+    name: '海盐薯片',
+    palette: { hair: '#4a4a55', skin: '#e8c8a8', cloth: '#7a8a9a', accent: '#a8c0d0' },
+    themeColor: '#a8c0d0',
+  },
+  cha: {
+    id: 'cha',
+    name: '路过的猹',
+    palette: { hair: '#4f4f4f', skin: '#e0c0a0', cloth: '#8a8a7a', accent: '#b8b8a0' },
+    themeColor: '#b8b8a0',
   },
 };
 

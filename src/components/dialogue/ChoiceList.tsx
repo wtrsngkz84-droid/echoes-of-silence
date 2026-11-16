@@ -14,6 +14,7 @@ export function ChoiceList({ options, onSelect }: ChoiceListProps) {
         <button
           key={option.id}
           className="choice-btn"
+          data-option-id={option.id}
           onClick={(e) => {
             e.stopPropagation();
             onSelect(option.id);

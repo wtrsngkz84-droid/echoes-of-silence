@@ -27,6 +27,7 @@ export type NodeKind =
   | 'inner'       // 内心独白
   | 'chat'        // 手机聊天演出（群聊/私聊）
   | 'typing'      // 「打字又删掉」输入框演出（GAMEPLAY_DESIGN §2.3）
+  | 'summary'     // 章末小结屏（C1-010）
   | 'clue'        // 线索获得演出
   | 'settlement'  // 章末结算（M1）
   | 'ending';     // 结局判定点：读取 flags 求值并展示结局卡
@@ -76,6 +77,12 @@ export interface ScreenshotContent {
   rows: ScreenshotRow[];
   /** 完整记录（EV-01）：裁剪截图「查看完整上下文」的数据源 */
   fullContext?: ScreenshotRow[];
+}
+
+/** 条件文本变体：首个满足条件的 variant 覆盖 node.text */
+export interface NodeVariant {
+  requires: Condition;
+  text: string;
 }
 
 /** 「打字又删掉」演出参数（GAMEPLAY_DESIGN §2.3） */
@@ -131,8 +138,10 @@ export interface StoryNode {
   tone?: ToneKey;
   /** 说话人角色 id（dialogue 必填） */
   speaker?: string;
-  /** 台词/独白/旁白正文（chat 节点可为空） */
+  /** 台词/独白/旁白正文（chat/typing 节点可为空） */
   text?: string;
+  /** 条件文本变体：首个 requires 满足的条目覆盖 text */
+  variants?: NodeVariant[];
   /** chat 节点：聊天演出序列 */
   messages?: ChatMessage[];
   /** chat 节点：界面标题（群名或私聊对象名） */

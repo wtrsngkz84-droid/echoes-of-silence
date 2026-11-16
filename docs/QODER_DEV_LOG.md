@@ -3,6 +3,32 @@
 > 本文件记录真实工作状态，供两位成员的 Qoder 在新会话恢复上下文。  
 > 记录“已经做了什么、验证了什么、还差什么”；计划不等于完成，未运行不等于通过。
 
+## 2026-11-16 — M1-P0：第一章正式剧本入库（STORY_SCRIPT V0.1，开发负责人）
+
+- 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。
+- 起始分支与基线提交：main @ `a18e783`（A1 组件先行；本地 HANDOFF 未跟踪，不纳入提交）。
+- 任务目标与关联需求：按 STORY_SCRIPT V0.1 §2/§3 落第一章正式数据，替换 placeholder 注册；统一 2026-11-16 审阅口径（v_xm_read_zhou 理解=1、CP4 requires、群像 handle、§5-I 私信转述、周末过场）；逐字校验 §5-A/B/C/E/F/G/H/I/J/K；摘要屏与演示网关。
+- 变更文件及原因：
+  - `src/story/ch1.ts`（新增，81 节点）：C1-001～C1-010 及子节点；四自证变体、退/留群、敞开度/请求作证、12/5–12/8 多步求助窗口、12/7 反悔、12/8 E′、C1-010 summary、C1-901 演示网关。
+  - `src/story/index.ts`：只注册 `CH1_NODES`；`src/story/placeholder/ch1Slice.ts` 删除（M0.5 占位退役）。
+  - `src/story/characters.ts`：新增群像 handle（今天也要开心鸭/极速柠檬/一颗奶糖/海盐薯片/路过的猹）与罗一鸣；移除类型化占位同学。
+  - `src/story/clues.ts`：新增 EV-06 公示分工说明页。
+  - `src/story/ch1Summary.ts`（新增）：C1-010 摘要渲染表纯函数 + 倒计时/引导语常量。
+  - `src/components/screens/ChapterSummary.tsx`（新增）：章末小结屏；`GameScreen.tsx` 接入 summary 节点。
+  - `src/engine/types.ts`：NodeKind 增 `summary`、StoryNode 增 `variants`；`engine.ts` 增 `visibleNodeText`；`validation.ts` 支持 summary/variants。
+  - `src/components/dialogue/ChoiceList.tsx`：按钮加 `data-option-id`（浏览器验收定位）；`GameScreen` 加 `data-node-id`。
+  - 测试：`story.test.ts` 改为正式校验 + §5 原文包含 + 摘要；新增 `ch1.paths.test.ts` 四条路径；`engine.test.ts` 增 `visibleNodeText`。
+  - 文档：`TECHNICAL.md` v0.4、`README.md`、本日志。
+- 已完成：第一章正式剧本全部节点与四条章级路径；C1-007 12/2 纸条查看器第二课已接通；C1-006 树洞推送补入 §5-H 原文；全部节点移除 `isPlaceholder`。
+- 验证方法、命令或游玩步骤：`npx tsc --noEmit`；`npx vitest run`；`npm run build`；应用内浏览器存档注入分段 + 真实 UI 点击验证默认/沉默/反悔/私信对质四条终态。
+- 实际结果：通过。tsc 通过；62/62 测试；build 成功（gzip JS 95.37 KB、CSS 5.02 KB）。浏览器终态：默认线 `v_xm_help=3`/`v_xm_variant=0`/`v_xm_stay=0`/`v_xm_read_zhou=1`/`v_mom_alert=0`/`v_xm_openness=1`/`v_xm_ask_cy=1`；沉默线 `v_xm_help=0`/`v_xm_variant=3`/`v_xm_stay=1`/`v_xm_openness=0`；反悔线 `v_xm_help=2`；私信对质线 `v_xm_variant=2`。摘要行与 STORY_SCRIPT §3 一致；控制台零报错。
+- 发现并修复的问题：①C1-008 与 C1-009 子节点编号碰撞（C1-091～C1-094）——将求助窗口子节点整体改为 C1-105～C1-116；②C1-111/C1-114 的 requires 出现重复 `none` 键——合并为数组；③路径测试发现「感冒/装睡」未显式写 `v_mom_alert=0`、「谁也不找」未写 `v_xm_help=0`——补选项 effects 与条件分支；④C1-063 typing 按剧本改为最终空白（后续文本由 C1-064 反应选择决定），不再保留上一轮占位的「妈 没事」。
+- 内容/数据差异：STORY_SCRIPT §2 写「§5-C 完整八条」，STORY_BIBLE §5-C 实际 9 行；实现按原文 9 行全量呈现并在测试中逐条校验，建议产品侧确认计数口径。C1-004 反应选择按剧本拆在 20:15 之后，聊天分 C1-004/C1-045 两段；C1-009 使用 `v_did_mom/v_did_teacher/v_did_b/v_did_wait/v_did_d` 临时标记实现多步窗口，均不参与结局判定。
+- 未解决问题、风险与依赖：P1/P2 项仍待处理（选项 hint 泄露变量名、开始游戏覆盖确认、types.ts beat 示例、正式剧本 isPlaceholder 断言已翻转）；C1-010 小结屏视觉需产品侧过目；正式剧本 V0.1 仍待产品负责人审阅；第 2/3 章未交付。
+- 新决策编号或待确认提案：无新增；U-011 已统一（理解=1）。
+- 下一步及接手角色：产品负责人审阅 STORY_SCRIPT V0.1；开发处理 P1/P2 并准备第 2/3 章接入；FR-13 三分钟路径与部署按里程碑推进。
+- 提交 / PR 链接：本条与上述代码作为单条提交推送 main；哈希以仓库历史为准。
+
 ## 2026-11-16 — M1-P0：第一章核心交互补全（开发负责人）
 
 - 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。

@@ -8,6 +8,7 @@ import {
   enterNode,
   startChapter,
   visibleChatMessages,
+  visibleNodeText,
   visibleOptions,
 } from './engine';
 import type { EndingId, RunState, StoryNode } from './types';
@@ -294,5 +295,19 @@ describe('engine 节点推进', () => {
     expect(
       visibleChatMessages(runOf({ flags: { path: 'a' } }), chatNode),
     ).toHaveLength(2);
+  });
+
+  it('visibleNodeText 使用首个满足条件的文本变体', () => {
+    const node: StoryNode = {
+      id: 'C1-001',
+      chapter: 'ch1',
+      kind: 'dialogue',
+      speaker: 'mom',
+      text: '基础文本',
+      variants: [{ requires: { all: ['v_x'] }, text: '变体文本' }],
+      goto: 'C1-002',
+    };
+    expect(visibleNodeText(runOf(), node)).toBe('基础文本');
+    expect(visibleNodeText(runOf({ flags: { v_x: 1 } }), node)).toBe('变体文本');
   });
 });

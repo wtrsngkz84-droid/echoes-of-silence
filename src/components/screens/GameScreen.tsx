@@ -3,6 +3,7 @@ import {
   autoFloodActive,
   canAdvance,
   visibleChatMessages,
+  visibleNodeText,
   visibleOptions,
 } from '../../engine/engine';
 import type { ChapterId, ScreenshotContent } from '../../engine/types';
@@ -16,6 +17,7 @@ import { ScreenshotViewer } from '../chat/ScreenshotViewer';
 import { ChoiceList } from '../dialogue/ChoiceList';
 import { DialogueBox } from '../dialogue/DialogueBox';
 import { TypingDelete } from '../dialogue/TypingDelete';
+import { ChapterSummary } from './ChapterSummary';
 import { CluePanel } from '../clue/CluePanel';
 import { ClueToast } from '../clue/ClueToast';
 import { GameMenu } from '../menu/GameMenu';
@@ -39,7 +41,8 @@ export function GameScreen() {
     [run?.currentNodeId],
   );
 
-  const typer = useTypewriter(node?.text ?? '');
+  const nodeText = run && node ? visibleNodeText(run, node) : '';
+  const typer = useTypewriter(nodeText);
   const [viewerContent, setViewerContent] = useState<ScreenshotContent | null>(null);
   const [typingDone, setTypingDone] = useState(false);
 
@@ -76,6 +79,12 @@ export function GameScreen() {
     }
     if (node.kind === 'typing') {
       if (!typingDone) return;
+      if (options.length === 0 && canAdvance(run, node)) {
+        game.advance();
+      }
+      return;
+    }
+    if (node.kind === 'summary') {
       if (options.length === 0 && canAdvance(run, node)) {
         game.advance();
       }
@@ -119,6 +128,7 @@ export function GameScreen() {
     <div
       className="game-root"
       data-tone={node.tone ?? 'neutral'}
+      data-node-id={node.id}
       onClick={primary}
       role="presentation"
     >
@@ -174,6 +184,8 @@ export function GameScreen() {
         />
       ) : node.kind === 'typing' && node.typing ? (
         <TypingDelete effect={node.typing} onDone={() => setTypingDone(true)} />
+      ) : node.kind === 'summary' ? (
+        <ChapterSummary run={run} onContinue={game.advance} />
       ) : (
         <DialogueBox
           speaker={node.speaker}
