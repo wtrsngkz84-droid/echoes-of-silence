@@ -21,8 +21,8 @@
   - 文档：`TECHNICAL.md` v0.4、`README.md`、本日志。
 - 已完成：第一章正式剧本全部节点与四条章级路径；C1-007 12/2 纸条查看器第二课已接通；C1-006 树洞推送补入 §5-H 原文；全部节点移除 `isPlaceholder`。
 - 验证方法、命令或游玩步骤：`npx tsc --noEmit`；`npx vitest run`；`npm run build`；应用内浏览器存档注入分段 + 真实 UI 点击验证默认/沉默/反悔/私信对质四条终态。
-- 实际结果：通过。tsc 通过；62/62 测试；build 成功（gzip JS 95.37 KB、CSS 5.02 KB）。浏览器终态：默认线 `v_xm_help=3`/`v_xm_variant=0`/`v_xm_stay=0`/`v_xm_read_zhou=1`/`v_mom_alert=0`/`v_xm_openness=1`/`v_xm_ask_cy=1`；沉默线 `v_xm_help=0`/`v_xm_variant=3`/`v_xm_stay=1`/`v_xm_openness=0`；反悔线 `v_xm_help=2`；私信对质线 `v_xm_variant=2`。摘要行与 STORY_SCRIPT §3 一致；控制台零报错。
-- 发现并修复的问题：①C1-008 与 C1-009 子节点编号碰撞（C1-091～C1-094）——将求助窗口子节点整体改为 C1-105～C1-116；②C1-111/C1-114 的 requires 出现重复 `none` 键——合并为数组；③路径测试发现「感冒/装睡」未显式写 `v_mom_alert=0`、「谁也不找」未写 `v_xm_help=0`——补选项 effects 与条件分支；④C1-063 typing 按剧本改为最终空白（后续文本由 C1-064 反应选择决定），不再保留上一轮占位的「妈 没事」。
+- 实际结果：通过。tsc 通过；62/62 测试；build 成功（gzip JS 95.25 KB、CSS 5.02 KB）。浏览器终态：默认线 `v_xm_help=3`/`v_xm_variant=0`/`v_xm_stay=0`/`v_xm_read_zhou=1`/`v_mom_alert=0`/`v_xm_openness=1`/`v_xm_ask_cy=1`；沉默线 `v_xm_help=0`/`v_xm_variant=3`/`v_xm_stay=1`/`v_xm_openness=0`；反悔线 `v_xm_help=2`；私信对质线 `v_xm_variant=2`。摘要行与 STORY_SCRIPT §3 一致；控制台零报错。
+- 发现并修复的问题：①C1-008 与 C1-009 子节点编号碰撞（C1-091～C1-094）——将求助窗口子节点整体改为 C1-105～C1-116；②C1-111/C1-114 的 requires 出现重复 `none` 键——合并为数组；③路径测试发现「感冒/装睡」未显式写 `v_mom_alert=0`、「谁也不找」未写 `v_xm_help=0`——补选项 effects 与条件分支；④C1-063 typing 按剧本改为最终空白（后续文本由 C1-064 反应选择决定），不再保留上一轮占位的「妈 没事」；⑤选项文案按剧本原文校正（低头摆弄发卡 / 退出群聊 / 发送「感冒」/ 不选等），去除改写版。
 - 内容/数据差异：STORY_SCRIPT §2 写「§5-C 完整八条」，STORY_BIBLE §5-C 实际 9 行；实现按原文 9 行全量呈现并在测试中逐条校验，建议产品侧确认计数口径。C1-004 反应选择按剧本拆在 20:15 之后，聊天分 C1-004/C1-045 两段；C1-009 使用 `v_did_mom/v_did_teacher/v_did_b/v_did_wait/v_did_d` 临时标记实现多步窗口，均不参与结局判定。
 - 未解决问题、风险与依赖：P1/P2 项仍待处理（选项 hint 泄露变量名、开始游戏覆盖确认、types.ts beat 示例、正式剧本 isPlaceholder 断言已翻转）；C1-010 小结屏视觉需产品侧过目；正式剧本 V0.1 仍待产品负责人审阅；第 2/3 章未交付。
 - 新决策编号或待确认提案：无新增；U-011 已统一（理解=1）。

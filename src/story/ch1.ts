@@ -139,9 +139,9 @@ export const CH1_NODES: StoryNode[] = [
     factRefs: ['§5-A'],
     text: '这一次『永安老街』组的成果是全班完成度最高的——尤其是文本部分。林小满——（笑）——是不是你偷偷当了主力呀？好家伙，咱班藏了个笔杆子。这样，这个报告我想送去参加这届『城市记忆』评选，申报表周五前交到我这里。',
     options: [
-      { id: 'C1-021-O1', text: '低下头，手指绕着发卡', hint: '被当众点名的不安', goto: 'C1-022' },
-      { id: 'C1-021-O2', text: '把草稿本攥得更紧', hint: '那上面有四十多天的走访', goto: 'C1-023' },
-      { id: 'C1-021-O3', text: '看向台上——予安还抱着翻页笔', hint: '她刚才讲得多好啊', goto: 'C1-024' },
+      { id: 'C1-021-O1', text: '低头摆弄发卡', hint: '被当众点名的不安', goto: 'C1-022' },
+      { id: 'C1-021-O2', text: '攥紧草稿本', hint: '那上面有四十多天的走访', goto: 'C1-023' },
+      { id: 'C1-021-O3', text: '看向台上的予安', hint: '她刚才讲得多好啊', goto: 'C1-024' },
     ],
   },
   {
@@ -701,14 +701,14 @@ export const CH1_NODES: StoryNode[] = [
     options: [
       {
         id: 'C1-055-O1',
-        text: '退出这个群',
+        text: '退出群聊',
         hint: '眼不见为净',
         effects: { v_xm_stay: 0 },
         goto: 'C1-056',
       },
       {
         id: 'C1-055-O2',
-        text: '留下来。总得有人看着里头发生什么',
+        text: '留在群里，沉默在线',
         hint: '沉默在线',
         effects: { v_xm_stay: 1 },
         goto: 'C1-057',
@@ -849,21 +849,21 @@ export const CH1_NODES: StoryNode[] = [
     options: [
       {
         id: 'C1-064-O1',
-        text: '「妈，我有点感冒，想请一天假。」',
+        text: '发送「感冒」',
         hint: '轻描淡写',
         effects: { v_mom_alert: 0 },
         goto: 'C1-065',
       },
       {
         id: 'C1-064-O2',
-        text: '「妈……学校里，出了点事。」（试着说一半）',
+        text: '试着说一半',
         hint: '说一半，留一半',
         effects: { v_mom_alert: 1 },
         goto: 'C1-066',
       },
       {
         id: 'C1-064-O3',
-        text: '把被子拉过头顶，装睡',
+        text: '装睡',
         hint: '什么都不说',
         effects: { v_mom_alert: 0 },
         goto: 'C1-067',
@@ -1025,7 +1025,7 @@ export const CH1_NODES: StoryNode[] = [
       },
       {
         id: 'C1-072-O2',
-        text: '不回了（你太累了）',
+        text: '不回',
         hint: '今天没有力气回复',
         goto: 'C1-074',
       },
@@ -1374,7 +1374,7 @@ export const CH1_NODES: StoryNode[] = [
     options: [
       {
         id: 'C1-009-O1',
-        text: '去厨房，把这件事完整地告诉妈妈',
+        text: '告诉妈妈',
         hint: '完整地说出来',
         requires: { none: ['v_did_mom'] },
         effects: { v_xm_help: 1, v_did_mom: 1 },
@@ -1382,7 +1382,7 @@ export const CH1_NODES: StoryNode[] = [
       },
       {
         id: 'C1-009-O2',
-        text: '把证据按顺序整理一遍',
+        text: '把证据整理一遍',
         hint: '先整理，不急着交',
         requires: { none: ['v_did_b'] },
         effects: { v_did_b: 1 },
@@ -1516,7 +1516,7 @@ export const CH1_NODES: StoryNode[] = [
     options: [
       {
         id: 'C1-111-O1',
-        text: '转身，去办公室——把草稿本拿给李老师',
+        text: '……转身，去办公室。',
         hint: '妈妈已经知道了',
         requires: { none: ['v_did_teacher'], all: ['v_did_mom'] },
         effects: { v_xm_help: 3, v_did_teacher: 1 },
@@ -1524,7 +1524,7 @@ export const CH1_NODES: StoryNode[] = [
       },
       {
         id: 'C1-111-O2',
-        text: '转身，去办公室——把草稿本拿给李老师',
+        text: '……转身，去办公室。',
         hint: '求助永不关门',
         requires: { none: ['v_did_teacher', 'v_did_mom'] },
         effects: { v_xm_help: 2, v_did_teacher: 1 },
@@ -1532,7 +1532,7 @@ export const CH1_NODES: StoryNode[] = [
       },
       {
         id: 'C1-111-O3',
-        text: '先回家。明天再说',
+        text: '不选',
         hint: '公示栏就在身后',
         goto: 'C1-114',
       },
