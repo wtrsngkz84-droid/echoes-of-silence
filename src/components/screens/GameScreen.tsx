@@ -1,14 +1,21 @@
-import { useEffect, useMemo } from 'react';
-import { canAdvance, visibleChatMessages, visibleOptions } from '../../engine/engine';
-import type { ChapterId } from '../../engine/types';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  autoFloodActive,
+  canAdvance,
+  visibleChatMessages,
+  visibleOptions,
+} from '../../engine/engine';
+import type { ChapterId, ScreenshotContent } from '../../engine/types';
 import { useGameKeyboard } from '../../hooks/useKeyboard';
 import { useTypewriter } from '../../hooks/useTypewriter';
 import { useGame } from '../../state/GameContext';
 import { CHARACTERS } from '../../story/characters';
 import { STORY_INDEX } from '../../story/index';
 import { PhoneChat } from '../chat/PhoneChat';
+import { ScreenshotViewer } from '../chat/ScreenshotViewer';
 import { ChoiceList } from '../dialogue/ChoiceList';
 import { DialogueBox } from '../dialogue/DialogueBox';
+import { TypingDelete } from '../dialogue/TypingDelete';
 import { CluePanel } from '../clue/CluePanel';
 import { ClueToast } from '../clue/ClueToast';
 import { GameMenu } from '../menu/GameMenu';
@@ -33,6 +40,13 @@ export function GameScreen() {
   );
 
   const typer = useTypewriter(node?.text ?? '');
+  const [viewerContent, setViewerContent] = useState<ScreenshotContent | null>(null);
+  const [typingDone, setTypingDone] = useState(false);
+
+  useEffect(() => {
+    setViewerContent(null);
+    setTypingDone(false);
+  }, [run?.currentNodeId]);
 
   const options = useMemo(() => (run && node ? visibleOptions(run, node) : []), [run, node]);
   const chatTotal = useMemo(
@@ -46,14 +60,23 @@ export function GameScreen() {
     (node.kind !== 'chat' || run.chatPlayed >= chatTotal);
   const portrait = node?.speaker ? CHARACTERS[node.speaker] : undefined;
 
-  const overlayBlocked = state.menuOpen || state.cluePanelOpen;
+  const overlayBlocked = state.menuOpen || state.cluePanelOpen || viewerContent !== null;
 
   const primary = () => {
     if (!run || !node || overlayBlocked) return;
     if (node.kind === 'chat') {
+      // 自动上涌段（含暂停态）不接受点击跳过；暂停/加速由聊天窗控件处理。
+      if (autoFloodActive(run, node)) return;
       if (run.chatPlayed < chatTotal) {
         game.chatNext();
       } else if (options.length === 0 && canAdvance(run, node)) {
+        game.advance();
+      }
+      return;
+    }
+    if (node.kind === 'typing') {
+      if (!typingDone) return;
+      if (options.length === 0 && canAdvance(run, node)) {
         game.advance();
       }
       return;
@@ -68,6 +91,7 @@ export function GameScreen() {
   };
 
   const escape = () => {
+    if (viewerContent) return;
     if (state.cluePanelOpen) game.closeClues();
     else if (state.menuOpen) game.closeMenu();
     else if (run) game.openMenu();
@@ -142,7 +166,14 @@ export function GameScreen() {
       )}
 
       {node.kind === 'chat' ? (
-        <PhoneChat run={run} node={node} />
+        <PhoneChat
+          run={run}
+          node={node}
+          onChatNext={game.chatNext}
+          onOpenScreenshot={setViewerContent}
+        />
+      ) : node.kind === 'typing' && node.typing ? (
+        <TypingDelete effect={node.typing} onDone={() => setTypingDone(true)} />
       ) : (
         <DialogueBox
           speaker={node.speaker}
@@ -153,6 +184,10 @@ export function GameScreen() {
       )}
 
       {showChoices && <ChoiceList options={options} onSelect={game.choose} />}
+
+      {viewerContent && (
+        <ScreenshotViewer content={viewerContent} onClose={() => setViewerContent(null)} />
+      )}
 
       <ClueToast />
       <CluePanel />

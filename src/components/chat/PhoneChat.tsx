@@ -1,25 +1,75 @@
-import { useEffect, useRef } from 'react';
-import { visibleChatMessages } from '../../engine/engine';
+import { useEffect, useRef, useState } from 'react';
+import { autoFloodActive, visibleChatMessages } from '../../engine/engine';
+import {
+  DEFAULT_FLOOD_INTERVAL_MS,
+  createFloodState,
+  floodIntervalMs,
+  setFloodSpeed,
+  startFlood,
+  syncFloodState,
+  tickFlood,
+  toggleFloodPause,
+} from '../../engine/flood';
 import { characterName } from '../../story/characters';
-import type { RunState, StoryNode } from '../../engine/types';
+import type { RunState, ScreenshotContent, StoryNode } from '../../engine/types';
 import { CHARACTERS } from '../../story/characters';
 import '../../styles/game.css';
 
 interface PhoneChatProps {
   run: RunState;
   node: StoryNode;
+  onChatNext: () => void;
+  onOpenScreenshot: (content: ScreenshotContent) => void;
 }
 
-/** 手机聊天演出：逐条点击播放；全部播完后由外层接管推进/选项 */
-export function PhoneChat({ run, node }: PhoneChatProps) {
+/** 手机聊天演出：逐条点击播放；autoFlood 段自动上涌（可暂停/2×/回滚）。 */
+export function PhoneChat({ run, node, onChatNext, onOpenScreenshot }: PhoneChatProps) {
   const bodyRef = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
   const messages = visibleChatMessages(run, node);
   const played = messages.slice(0, run.chatPlayed);
   const finished = run.chatPlayed >= messages.length;
+  const autoSegment = autoFloodActive(run, node);
+
+  const [flood, setFlood] = useState(() => createFloodState(messages.length, run.chatPlayed));
 
   useEffect(() => {
+    setFlood(createFloodState(messages.length, run.chatPlayed));
+    stickToBottomRef.current = true;
+  }, [node.id]);
+
+  useEffect(() => {
+    setFlood((current) => syncFloodState(current, run.chatPlayed, messages.length));
+  }, [run.chatPlayed, messages.length]);
+
+  useEffect(() => {
+    if (!autoSegment) return;
+    setFlood((current) => (current.status === 'idle' ? startFlood(current) : current));
+  }, [autoSegment]);
+
+  useEffect(() => {
+    if (!autoSegment || flood.status !== 'playing') return;
+    const timer = window.setTimeout(() => {
+      setFlood((current) => tickFlood(current));
+      onChatNext();
+    }, floodIntervalMs(flood, node.floodIntervalMs ?? DEFAULT_FLOOD_INTERVAL_MS));
+    return () => window.clearTimeout(timer);
+  }, [autoSegment, flood, node.floodIntervalMs, onChatNext]);
+
+  useEffect(() => {
+    if (!stickToBottomRef.current) return;
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
   }, [run.chatPlayed]);
+
+  const handleScroll = () => {
+    const el = bodyRef.current;
+    if (!el) return;
+    stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 12;
+  };
+
+  const openScreenshot = (content: ScreenshotContent) => {
+    onOpenScreenshot(content);
+  };
 
   return (
     <div className="phone-chat" aria-label={`聊天窗口：${node.chatTitle ?? ''}`}>
@@ -27,7 +77,7 @@ export function PhoneChat({ run, node }: PhoneChatProps) {
         <span className="dot" />
         {node.chatTitle ?? '群聊'}
       </div>
-      <div className="phone-chat__body" ref={bodyRef}>
+      <div className="phone-chat__body" ref={bodyRef} onScroll={handleScroll}>
         {played.map((msg) => {
           if (msg.side === 'system') {
             return (
@@ -51,7 +101,19 @@ export function PhoneChat({ run, node }: PhoneChatProps) {
               {msg.kind === 'screenshot' && msg.screenshot ? (
                 <div
                   className="chat-msg__screenshot"
-                  aria-label={msg.screenshot.caption ?? '聊天截图'}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${msg.screenshot.caption ?? '聊天截图'}，点击放大查看`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openScreenshot(msg.screenshot!);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openScreenshot(msg.screenshot!);
+                  }}
                 >
                   {msg.screenshot.caption && (
                     <div className="shot-caption">{msg.screenshot.caption}</div>
@@ -89,13 +151,40 @@ export function PhoneChat({ run, node }: PhoneChatProps) {
         })}
       </div>
       <div className="phone-chat__foot">
-        {finished
-          ? '▼ 点击继续'
-          : (
-            <span className="blink">
-              ● 新消息 ×{messages.length - run.chatPlayed} · 点击播放
+        {autoSegment ? (
+          <div className="flood-controls">
+            <span className="flood-progress">
+              {flood.status === 'paused' ? '已暂停 · 可回滚' : '自动上涌中'} {run.chatPlayed}/
+              {messages.length}
             </span>
-          )}
+            <button
+              type="button"
+              className="flood-btn"
+              onClick={(event) => {
+                event.stopPropagation();
+                setFlood((current) => toggleFloodPause(current));
+              }}
+            >
+              {flood.status === 'paused' ? '继续' : '暂停'}
+            </button>
+            <button
+              type="button"
+              className="flood-btn"
+              onClick={(event) => {
+                event.stopPropagation();
+                setFlood((current) => setFloodSpeed(current, current.speed === 1 ? 2 : 1));
+              }}
+            >
+              {flood.speed}×
+            </button>
+          </div>
+        ) : finished ? (
+          '▼ 点击继续'
+        ) : (
+          <span className="blink">
+            ● 新消息 ×{messages.length - run.chatPlayed} · 点击播放
+          </span>
+        )}
       </div>
     </div>
   );

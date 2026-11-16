@@ -106,6 +106,13 @@ export function chatFinished(run: RunState, node: StoryNode): boolean {
   return run.chatPlayed >= visibleChatMessages(run, node).length;
 }
 
+/** 当前是否处于自动上涌段（含暂停态）：用于阻止点击跳过首遍。 */
+export function autoFloodActive(run: RunState, node: StoryNode): boolean {
+  if (!node.autoFlood || node.kind !== 'chat') return false;
+  const from = Math.max(0, Math.floor(node.floodFrom ?? 0));
+  return run.chatPlayed >= from && !chatFinished(run, node);
+}
+
 export function hasOptions(run: RunState, node: StoryNode): boolean {
   return visibleOptions(run, node).length > 0;
 }

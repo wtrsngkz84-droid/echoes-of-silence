@@ -59,9 +59,48 @@ export function validateStory(
             message: `screenshot 消息缺少截图内容：${msg.id}`,
           });
         }
+        if (msg.screenshot?.fullContext && msg.screenshot.fullContext.length === 0) {
+          issues.push({
+            level: 'error',
+            nodeId: where,
+            message: `screenshot.fullContext 为空：${msg.id}`,
+          });
+        }
+      }
+      if (node.autoFlood) {
+        const from = node.floodFrom ?? 0;
+        if (from < 0 || from > (node.messages?.length ?? 0)) {
+          issues.push({
+            level: 'error',
+            nodeId: where,
+            message: `floodFrom 超出消息范围：${from}`,
+          });
+        }
+        if (node.floodIntervalMs !== undefined && node.floodIntervalMs <= 0) {
+          issues.push({
+            level: 'error',
+            nodeId: where,
+            message: 'floodIntervalMs 必须大于 0',
+          });
+        }
+      }
+    } else if (node.kind === 'typing') {
+      if (!node.typing || !node.typing.draft.trim()) {
+        issues.push({ level: 'error', nodeId: where, message: 'typing 节点缺少 typing.draft' });
+      }
+      if (typeof node.typing?.final !== 'string') {
+        issues.push({ level: 'error', nodeId: where, message: 'typing 节点缺少 typing.final' });
       }
     } else if (!node.text) {
       issues.push({ level: 'error', nodeId: where, message: `非 chat 节点缺少 text` });
+    }
+
+    if (node.autoFlood && node.kind !== 'chat') {
+      issues.push({
+        level: 'warning',
+        nodeId: where,
+        message: 'autoFlood 仅对 chat 节点生效',
+      });
     }
 
     if (node.kind === 'dialogue' && !node.speaker) {

@@ -41,4 +41,36 @@ describe('剧情数据完整性', () => {
       expect(node.isPlaceholder, `${node.id} 缺少占位标记`).toBe(true);
     }
   });
+
+  it('C1-005 群消息段启用 autoFlood，裁剪截图带完整上下文与 4 处断口', () => {
+    const node = STORY_INDEX.nodes.get('C1-005');
+    expect(node?.autoFlood).toBe(true);
+    expect(node?.floodFrom).toBe(3);
+    expect(node?.floodIntervalMs).toBe(420);
+
+    const shot = node?.messages?.find((msg) => msg.kind === 'screenshot')?.screenshot;
+    expect(shot?.rows).toHaveLength(1);
+    expect(shot?.rows[0].time).toBe('20:33');
+    expect(shot?.fullContext).toHaveLength(9);
+    expect(shot?.fullContext?.find((row) => row.time === '20:33')?.cropped).toBeFalsy();
+    expect(shot?.fullContext?.filter((row) => row.cropped)).toHaveLength(4);
+  });
+
+  it('C1-051 完整记录截图标记 4 条被公开裁掉的消息', () => {
+    const node = STORY_INDEX.nodes.get('C1-051');
+    const shot = node?.messages?.find((msg) => msg.kind === 'screenshot')?.screenshot;
+    expect(shot?.rows).toHaveLength(9);
+    expect(shot?.rows.filter((row) => row.cropped)).toHaveLength(4);
+    expect(shot?.fullContext).toBeUndefined();
+  });
+
+  it('C1-006 后接入 C1-060 打字又删掉节点，最终定格「妈 没事」', () => {
+    const before = STORY_INDEX.nodes.get('C1-006');
+    const typing = STORY_INDEX.nodes.get('C1-060');
+    expect(before?.goto).toBe('C1-060');
+    expect(typing?.kind).toBe('typing');
+    expect(typing?.typing?.final).toBe('妈 没事');
+    expect(typing?.typing?.draft.length).toBeGreaterThan(typing!.typing!.final.length);
+    expect(typing?.goto).toBe('C1-061');
+  });
 });

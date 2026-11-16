@@ -26,6 +26,7 @@ export type NodeKind =
   | 'dialogue'    // 角色台词
   | 'inner'       // 内心独白
   | 'chat'        // 手机聊天演出（群聊/私聊）
+  | 'typing'      // 「打字又删掉」输入框演出（GAMEPLAY_DESIGN §2.3）
   | 'clue'        // 线索获得演出
   | 'settlement'  // 章末结算（M1）
   | 'ending';     // 结局判定点：读取 flags 求值并展示结局卡
@@ -60,9 +61,11 @@ export interface ScreenshotRow {
   side: ChatSide;
   text: string;
   time?: string;
+  /** 该条在公开裁剪图中被裁掉（GAMEPLAY_DESIGN §3.2 撕裂断口标记） */
+  cropped?: boolean;
 }
 
-/** 裁剪截图内容（STORY_BIBLE §5-C：被裁掉的只剩 20:33 一条）：在消息内直接呈现原始聊天画面 */
+/** 截图内容：在消息内直接呈现原始聊天画面，点击进入查看器 */
 export interface ScreenshotContent {
   /** 截图内聊天窗口标题（如私聊对象名） */
   header: string;
@@ -71,6 +74,22 @@ export interface ScreenshotContent {
   /** 截图角标说明 */
   caption?: string;
   rows: ScreenshotRow[];
+  /** 完整记录（EV-01）：裁剪截图「查看完整上下文」的数据源 */
+  fullContext?: ScreenshotRow[];
+}
+
+/** 「打字又删掉」演出参数（GAMEPLAY_DESIGN §2.3） */
+export interface TypingEffect {
+  /** 草稿层长文：逐字浮现后逐字消隐 */
+  draft: string;
+  /** 定格最终文案（可为空字符串，表示输入框最终留空） */
+  final: string;
+  /** 逐字浮现间隔，默认 45ms */
+  typeMs?: number;
+  /** 逐字消隐间隔，默认 28ms */
+  deleteMs?: number;
+  /** 草稿浮现完成后的停顿，默认 700ms */
+  holdMs?: number;
 }
 
 export interface ChatMessage {
@@ -118,6 +137,14 @@ export interface StoryNode {
   messages?: ChatMessage[];
   /** chat 节点：界面标题（群名或私聊对象名） */
   chatTitle?: string;
+  /** chat 节点：指定消息索引起自动上涌（GAMEPLAY_DESIGN §3.1；首遍不可跳过） */
+  autoFlood?: boolean;
+  /** autoFlood 起始消息索引，默认 0 */
+  floodFrom?: number;
+  /** autoFlood 每条消息间隔毫秒，默认 420；2× 时减半 */
+  floodIntervalMs?: number;
+  /** typing 节点：「打字又删掉」演出参数 */
+  typing?: TypingEffect;
   options?: StoryOption[];
   /** 无选项时的无条件后继 */
   goto?: string;

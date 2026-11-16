@@ -99,6 +99,52 @@ describe('validateStory 剧情数据校验', () => {
     expect(issues.some((i) => i.message.includes('screenshot 消息缺少截图内容'))).toBe(true);
   });
 
+  it('typing 节点缺参数 → error；参数完整则通过', () => {
+    const broken: StoryNode[] = [
+      { id: 'C1-001', chapter: 'ch1', kind: 'typing', goto: 'C1-002' },
+      okNodes[1],
+    ];
+    const issues = validateStory(broken, clues, { ch1: 'C1-001' });
+    expect(issues.some((i) => i.message.includes('typing.draft'))).toBe(true);
+    expect(issues.some((i) => i.message.includes('typing.final'))).toBe(true);
+
+    const okTyping: StoryNode[] = [
+      {
+        id: 'C1-001',
+        chapter: 'ch1',
+        kind: 'typing',
+        typing: { draft: '草稿', final: '最终' },
+        goto: 'C1-002',
+      },
+      okNodes[1],
+    ];
+    expect(validateStory(okTyping, clues, { ch1: 'C1-001' }).filter((i) => i.level === 'error')).toEqual([]);
+  });
+
+  it('autoFlood 起始越界 → error；用在非 chat 节点 → warning', () => {
+    const broken: StoryNode[] = [
+      {
+        id: 'C1-001',
+        chapter: 'ch1',
+        kind: 'chat',
+        autoFlood: true,
+        floodFrom: 5,
+        messages: [{ id: 'm1', side: 'left', text: 'x' }],
+        goto: 'C1-002',
+      },
+      okNodes[1],
+    ];
+    const issues = validateStory(broken, clues, { ch1: 'C1-001' });
+    expect(issues.some((i) => i.message.includes('floodFrom 超出'))).toBe(true);
+
+    const misused: StoryNode[] = [
+      { ...okNodes[0], autoFlood: true },
+      okNodes[1],
+    ];
+    const warnings = validateStory(misused, clues, { ch1: 'C1-001' });
+    expect(warnings.some((i) => i.level === 'warning' && i.message.includes('autoFlood'))).toBe(true);
+  });
+
   it('节点 id 不符合命名约定 → warning 不阻断', () => {
     const odd: StoryNode[] = [
       { ...okNodes[0], id: 'bad-id', goto: 'C1-002' },

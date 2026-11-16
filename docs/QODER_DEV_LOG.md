@@ -3,6 +3,34 @@
 > 本文件记录真实工作状态，供两位成员的 Qoder 在新会话恢复上下文。  
 > 记录“已经做了什么、验证了什么、还差什么”；计划不等于完成，未运行不等于通过。
 
+## 2026-11-16 — M1-P0：第一章核心交互补全（开发负责人）
+
+- 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。
+- 起始分支与基线提交：main @ `8537a82`（已含产品侧 11-16 审阅；本地 HANDOFF 文件未跟踪，未纳入本次提交）。
+- 任务目标与关联需求：执行产品侧 2026-11-16 审阅下发的 M1-P0 指令——截图查看器（GAMEPLAY_DESIGN §3.2 / FR-04）、群爆自动上涌（§3.1）、「打字又删掉」（§2.3）。
+- 变更文件及原因：
+  - `src/engine/types.ts`：NodeKind 增 `typing`；StoryNode 增 `autoFlood/floodFrom/floodIntervalMs/typing`；ScreenshotContent 增 `fullContext`，ScreenshotRow 增 `cropped`。
+  - `src/engine/flood.ts`（新增）：自动上涌纯状态机 idle→playing⇄paused→done，1×/2×，不提供 skip。
+  - `src/engine/engine.ts`：新增 `autoFloodActive`——进入上涌段且未播完时拦截点击跳过。
+  - `src/engine/validation.ts`：typing 必填校验、fullContext 空数组、floodFrom 越界、autoFlood 非 chat 告警。
+  - `src/components/chat/ScreenshotViewer.tsx`（新增）+ `screenshotViewerState.ts`（新增）：查看器、完整上下文切换、撕裂断口、Esc/遮罩关闭；开合状态为纯函数。
+  - `src/components/chat/PhoneChat.tsx`：截图卡点击打开查看器；autoFlood 定时上涌、暂停/继续/2×、回滚查看（非吸底时停止自动滚动）。
+  - `src/components/dialogue/TypingDelete.tsx`（新增）：逐字浮现→停顿→逐字消隐→定格。
+  - `src/components/screens/GameScreen.tsx`：查看器/打字完成状态；查看器打开时阻断主操作与 Esc 菜单；typing 完成后才推进。
+  - `src/story/placeholder/ch1Slice.ts`：C1-005 增 autoFlood（从第 4 条起，420ms）与 §5-C 完整上下文；C1-051 标记 4 条被裁条目；C1-006→C1-060（typing，final「妈 没事」）→C1-061。
+  - `src/styles/game.css`：查看器/撕裂断口/上涌控件/打字输入框/窄视口适配；清理残留 `F-14a` 注释。
+  - 测试：新增 `flood.test.ts`、`screenshotViewerState.test.ts`；增补 `story.test.ts`、`validation.test.ts`。
+  - 文档：`docs/TECHNICAL.md` v0.3、`README.md` 测试数、本日志。
+- 已完成：三项 P0 交互全部接通 C1-005/C1-060；C1-007 12/2 纸条查看器按任务要求留待 A2 剧本入库接线。
+- 验证方法、命令或游玩步骤：`npx tsc --noEmit`；`npx vitest run`；`npm run build`；应用内浏览器（http://127.0.0.1:5173）注入存档分别跳转 C1-005/C1-060 实测。
+- 实际结果：通过。tsc 通过；55/55 测试；build 成功（gzip JS 91.43 KB、CSS 4.84 KB）。浏览器：查看器裁剪图 1 条 → 完整记录 9 条、4 处撕裂断口/说明、返回裁剪图；Esc 与遮罩关闭且不误开菜单；自动上涌从第 4 条起生效，暂停 900ms 消息数不变、继续恢复、2× 生效；顶部回滚时新消息到达但滚动位置保持；暂停态点击不跳过；C1-060 进入 final 定格「妈 没事」并点击进入 C1-061。控制台零报错。
+- 发现并修复的问题：①查看器初始状态漏置 open，导致「查看完整上下文」无效——浏览器实测发现，改为 `openViewer(createViewerState(...))`；②撕裂断口原按连续区段合并为 3 处，改为每条被裁条目 1 处（4 处），与 GD 的四条裁切一致。
+- 内容/数据差异：STORY_SCRIPT §2 C1-005 写「完整八条」，STORY_BIBLE §5-C 实际为 9 行（20:12×2、20:15×2、20:31、20:33、20:36、20:41、20:58）。实现按原文 9 行全量呈现，未删减；建议产品侧确认「八条」计数口径（是否将某两行合并计数）。
+- 未解决问题、风险与依赖：正式剧本入库（含 §5-H 原文补齐）未在本次范围；C1-007 12/2 第二教学点待 A2；P1/P2 仍待处理（选项 hint 泄露、开始游戏覆盖确认、types.ts beat 示例、story.test isPlaceholder 断言随正式剧本翻转）；浏览器验收仅窄视口，未做桌面大屏回归。
+- 新决策编号或待确认提案：无新增；U-011 已由产品侧统一为理解=1。
+- 下一步及接手角色：产品负责人审阅 STORY_SCRIPT V0.1；开发进入正式剧本接入（M1）与 P1 清理。
+- 提交 / PR 链接：本条与上述代码作为单条提交推送 main；哈希以仓库历史为准。
+
 ## 2026-11-16 — 代码审阅：P-014 对齐版引擎与第一章切片（产品经理 / 剧情策划）
 
 - 执行角色 / 负责人：产品经理 / 剧情策划（本人 Qoder）。

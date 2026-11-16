@@ -1,9 +1,10 @@
 # TECHNICAL — 《沉默的回声》技术架构说明
 
-> 维护人：开发 / 技术负责人。版本：v0.2。日期：2026-11-14。
+> 维护人：开发 / 技术负责人。版本：v0.3。日期：2026-11-16。
 > 本文件描述实际实现的架构、数据接口、状态变量、存档方案与验证方式。
 > 重大架构变更必须更新本文件并在 docs/QODER_DEV_LOG.md 留痕。
 > v0.2：对齐 P-014（GAMEPLAY_DESIGN §7.1 五结局判定矩阵 + v_* 数值变量 + EV 证据编号）。
+> v0.3：M1-P0 第一章核心交互——截图查看器（GAMEPLAY_DESIGN §3.2）、群聊自动上涌（§3.1）、「打字又删掉」演出（§2.3）。
 
 ## 1. 技术栈与运行方式
 
@@ -32,8 +33,9 @@ src/
 │   ├── types.ts        全部类型定义（节点/选项/状态/线索/结局）
 │   ├── conditions.ts    条件求值（flag 真值 / ! 取反 / v_* 数值比较 / 线索）
 │   ├── engine.ts        节点推进、选项、聊天播放、章节启动
+│   ├── flood.ts         群聊自动上涌状态机（暂停/恢复/2×；无 skip）
 │   ├── endings.ts       结局判定（GAMEPLAY_DESIGN §7.1 五结局矩阵）
-│   └── validation.ts    剧情数据入库校验（goto/线索/章起点完整性）
+│   └── validation.ts    剧情数据入库校验（goto/线索/章起点/typing/autoFlood）
 ├── story/     剧情数据层（改台词不改代码）
 │   ├── index.ts         剧情注册表（唯一入口：STORY_INDEX）
 │   ├── characters.ts / clues.ts / endings.ts
@@ -42,6 +44,9 @@ src/
 │   ├── GameContext.tsx  useReducer 封装（run 结算/存档/图鉴/通关失效）
 │   └── save.ts          LocalStorage 单槽位存档（v2）
 ├── components/ UI 层（screens / dialogue / chat / clue / menu / stage / ui）
+│   ├── chat/ScreenshotViewer.tsx        截图查看器（完整上下文/撕裂断口）
+│   ├── chat/screenshotViewerState.ts    查看器开合/视图模式纯状态（可单测）
+│   └── dialogue/TypingDelete.tsx        「打字又删掉」演出组件
 ├── hooks/     useTypewriter（打字机）/ useKeyboard（Space/Esc/数字键）
 └── styles/    像素风 CSS
 ```
@@ -55,13 +60,17 @@ interface StoryNode {
   id: string;              // C{章}-{序号三位}，如 C1-005（STORY_FLOW 两位编号补零）；子节点 C1-0N{序}；M0.5 演示 C1-9xx / CE-9xx
   chapter: 'ch1'|'ch2'|'ch3'|'epilogue';
   beat?: string;           // 节拍号，如 B1-5（STORY_FLOW §2）
-  kind: 'narration'|'dialogue'|'inner'|'chat'|'clue'|'settlement'|'ending';
+  kind: 'narration'|'dialogue'|'inner'|'chat'|'typing'|'clue'|'settlement'|'ending';
   scene?: SceneKey;        // 场景背景（暖/冷色调由 tone 驱动）
   tone?: 'warm'|'cold'|'neutral';   // STORY_BIBLE §7 色调基调（D10 前暖黄，D12 起冷灰蓝）
   speaker?: CharacterId;   // dialogue 必填
-  text?: string;           // 非 chat 节点必填（ending 可空）
+  text?: string;           // 非 chat/typing 节点必填（ending 可空）
   messages?: ChatMessage[]; // chat 节点必填，逐条点击播放；支持消息级 requires 变体演出
   chatTitle?: string;      // 群名/私聊对象名
+  autoFlood?: boolean;     // chat 节点：从 floodFrom 起自动上涌（GAMEPLAY_DESIGN §3.1）
+  floodFrom?: number;      // 自动上涌起始消息索引，默认 0
+  floodIntervalMs?: number; // 每条间隔，默认 420；2× 时减半（最小 80ms）
+  typing?: TypingEffect;   // typing 节点必填：「打字又删掉」演出参数
   options?: StoryOption[]; // 玩家选择（chat 节点播完消息后也显示）
   goto?: string;           // 无选项节点的后继
   effects?: FlagPatch;     // 进入节点写入的状态变量
@@ -88,6 +97,14 @@ interface Condition {
   clues?: string[];  // 全部已收集的证据 id（EV-xx）
   noClues?: string[]; // 全部未收集的证据 id（EV-xx）
 }
+
+interface TypingEffect {
+  draft: string;    // 草稿层长文：逐字浮现后逐字消隐
+  final: string;    // 定格最终文案（可为空字符串）
+  typeMs?: number;  // 逐字浮现间隔，默认 45ms
+  deleteMs?: number; // 逐字消隐间隔，默认 28ms
+  holdMs?: number;  // 草稿完成后的停顿，默认 700ms
+}
 ```
 
 **条件引用语法**（conditions.ts）：
@@ -98,7 +115,23 @@ interface Condition {
 
 **多步行动窗口模式**（纯数据实现，C1-009）：枢纽节点选项 goto 回自身；同名选项用互斥 `requires`（`none: ['v_did_*']` + 比较语法）控制菜单随状态增减，重复选择写入 `v_did_*` 临时标记防重复——不依赖任何引擎改动。
 
-**截图消息**（`kind: 'screenshot'`）：消息附件直接呈现原始聊天画面（迷你聊天窗：角标 + 状态栏时间 + 窗口名 + 原文气泡），替代文字描述。用于呈现 STORY_BIBLE 中拍屏/截取的消息（如 EV-02 裁剪版截图：仅含 20:33 一条）。`ScreenshotContent.header` 为截图内聊天窗口名、`statusTime` 为拍屏时刻、`rows` 为截图中可见的消息行（方向保留原聊天中的语义）。消息本身仍保留 `text` 字段作为无障碍回退文本。
+**截图消息与查看器**（`kind: 'screenshot'`，GAMEPLAY_DESIGN §3.2）：
+- `ScreenshotContent.header` 为截图内聊天窗口名、`statusTime` 为拍屏时刻、`rows` 为截图中可见的消息行（方向保留原聊天语义）。消息本身仍保留 `text` 作为无障碍回退文本。
+- 点击截图卡 → 全屏查看器（`ScreenshotViewer`），可上下滚动；Esc / 点击遮罩关闭，关闭后剧情可继续。
+- 裁剪截图（EV-02）提供 `fullContext: ScreenshotRow[]`，底部常驻「查看完整上下文」切换完整记录；`ScreenshotRow.cropped: true` 标记被公开裁掉的条目，查看器在每条被裁条目上方渲染撕裂断口与说明「这张图被裁掉的部分」。
+- 完整记录类截图（EV-01）直接把全部 `rows` 作为滚动视图，并用 `cropped` 标记同样呈现断口。
+- 查看器开合/模式切换由 `screenshotViewerState.ts` 纯函数管理，交互测试不依赖 DOM。
+
+**群聊自动上涌**（`autoFlood`，GAMEPLAY_DESIGN §3.1）：
+- `flood.ts` 是纯状态机（`idle → playing ⇄ paused → done`），不提供 skip/revealAll——首遍不可跳过；唯一控制是暂停/恢复与 1×/2×。
+- `autoFloodActive(run, node)` 在 `chatPlayed >= floodFrom` 且未播完时返回 true；GameScreen 在该状态下拦截点击跳过。
+- 手动点击前段消息仍可用；进入上涌段后由 PhoneChat 定时触发 `CHAT_NEXT`。聊天窗滚动到非底部时停止自动吸底，支持回滚查看已滚过内容。
+- `floodFrom` 越界、`floodIntervalMs <= 0`、autoFlood 用在非 chat 节点由 validateStory 拦截/告警。
+
+**「打字又删掉」**（`kind: 'typing'`，GAMEPLAY_DESIGN §2.3）：
+- `typing.draft` 逐字浮现 → `holdMs` 停顿 → 逐字消隐 → 定格 `typing.final`（可空白）。
+- 通用组件 `TypingDelete` 负责动画；动画完成前点击不推进，完成后点击/GAMEPLAY_DESIGN 主操作进入 `goto`。
+- C1-006 缺席日已接入 C1-060：长文删除后定格「妈 没事」，再进入 C1-061 与妈妈的对话。
 
 ## 4. 状态变量与结局判定（GAMEPLAY_DESIGN §5 / §7.1，P-014）
 
@@ -139,18 +172,21 @@ interface Condition {
 
 ## 6. 校验与测试
 
-- `validateStory`：正式剧本入库前必须通过（error 阻断：goto 断裂/缺 text/messages/speaker/线索不存在/章节起点缺失/screenshot 消息缺截图内容；warning：节点 id 命名偏离三位约定）。开发模式在控制台输出。
-- 单元测试 41 项：条件求值（真值/取反/组合/线索/**v_* 数值比较语法**）、结局判定（E1–E5 各命中分支 + **128 组合表驱动枚举**与 §7.1 独立重述逐一比对）、节点推进（effects/线索去重/选项拦截/聊天过滤/截图内容校验）、存档（单槽位覆盖/通关失效/损坏 JSON/静默失败）、剧情数据完整性（占位标记/角色引用/EV 编号/五结局卡）。
-- 浏览器实测（2026-11-14，M0.5 P-014 对齐后）：标题→内容提示→序章→汇报课（§5-A 逐字）→办公室→私聊之夜（§5-C 十条逐字 + EV-01）→群聊之夜（裁剪截图单行 20:33 + §5-E/F 围攻）→§5-G 完整自证→CP2 退群→缺席日（§5-I）→图书角→求助窗口→公示→回声小结→C1-901 演示网关→E4/E5 结局卡（判定矩阵输入展示正确）；存档注入恢复→E5 结算→通关后存档清除/继续游戏禁用/图鉴记录（E4+E5）；530px 窄视口几何实测（顶栏/聊天窗/选项列表无重叠，选项列表压缩后不裁剪）。控制台零报错。
-- M0 审查 3 个 UI 问题修复：530px 顶栏徽章压缩聊天窗（两档 @media 缩小）、聊天窗新消息提示（`● 新消息 ×N · 点击播放`）、结局卡判定输入展示改用引擎 `JUDGEMENT_VARS` 单一来源。另修复：走廊场景装饰「红榜」（v0.1 遗留）改「公告栏」（12/7 公示载体）。
+- `validateStory`：正式剧本入库前必须通过（error 阻断：goto 断裂/缺 text/messages/speaker/线索不存在/章节起点缺失/screenshot 消息缺截图内容/typing 缺 draft 或 final/floodFrom 越界；warning：节点 id 命名偏离三位约定/autoFlood 用在非 chat 节点）。开发模式在控制台输出。
+- 单元测试 **55 项**：条件求值（真值/取反/组合/线索/**v_* 数值比较语法**）、结局判定（E1–E5 各命中分支 + **128 组合表驱动枚举**与 §7.1 独立重述逐一比对）、节点推进（effects/线索去重/选项拦截/聊天过滤/截图内容校验）、**自动上涌状态机（idle/playing/paused/done、2×、外部同步、首遍门控）**、**截图查看器状态（开合/裁剪↔完整切换）**、存档（单槽位覆盖/通关失效/损坏 JSON/静默失败）、剧情数据完整性（占位标记/角色引用/EV 编号/五结局卡/C1-005 autoFlood/C1-060 typing）。
+- 浏览器实测（2026-11-16，M1-P0 交互补全后，应用内浏览器）：截图卡点击打开查看器（裁剪图 1 条）→「查看完整上下文」切换完整记录（9 条）→4 处撕裂断口与说明可见→「返回裁剪图」；Esc 与点击遮罩均关闭且不误开菜单。C1-005 从第 4 条起自动上涌，暂停后 900ms 消息数不变、继续后恢复、2× 生效；滚动到顶部后新消息继续到达但滚动位置保持（回滚可用）；暂停态点击画面不会跳过消息。C1-060 打字演出从「typing」进入「final」，定格「妈 没事」，点击进入 C1-061。控制台零报错。
+- 前次浏览器实测（2026-11-14，M0.5 P-014 对齐后）：全流程段落抽查、§5-A~I 逐字、存档注入恢复→E5→通关清档/继续游戏禁用/图鉴记录、窄视口几何无重叠。控制台零报错。
+- M0 审查 3 个 UI 问题修复：530px 顶栏徽章压缩聊天窗（两档 @media 缩小）、聊天窗新消息提示（`● 新消息 ×N · 点击播放`）、结局卡判定输入展示改用引擎 `JUDGEMENT_VARS` 单一来源。另修复：走廊场景装饰「红榜」（v0.1 遗留）改「公告栏」；v0.3 清理 `game.css` 残留 `F-14a` 注释。
 
 ## 7. 当前实现范围与边界
 
-- **已实现（M0.5，P-014 对齐）**：引擎全量功能（对话/内心/旁白/聊天/选项/线索/数值比较条件/五结局矩阵/单槽位存档/校验）+ 第1章完整弧线占位切片（11/26 汇报课→11/27 群聊之夜→11/30 缺席日→12/1–12/3 冷暴力蒙太奇→12/4 图书角→12/5–12/7 求助窗口多步枢纽→12/7 公示→回声小结，约 60 节点，§5-A~L 逐字原文，V0.95 事实零保留 v0.1）+ C1-901 结局演示网关（5 走向覆盖矩阵演示）。
-- **待产品交付后接入**：正式剧本（STORY_SCRIPT，替换 placeholder/）、第 2/3 章注册（M1/M2）、群聊玩家发言深度（PRD-TBD-02 定稿后启用 chat 节点内 right 消息交互）、章节解锁链与回声入口 UI（M2）、FR-13 三分钟路径（M2+）、像素字库与正式美术资源（ASSET_LIST）。
+- **已实现（M0.5 + M1-P0）**：引擎全量功能（对话/内心/旁白/聊天/选项/线索/数值比较条件/五结局矩阵/单槽位存档/校验）+ 第1章完整弧线占位切片（11/26 汇报课→11/27 群聊之夜→11/30 缺席日→12/1–12/3 冷暴力蒙太奇→12/4 图书角→12/5–12/7 求助窗口多步枢纽→12/7 公示→回声小结，约 60 节点，§5-A~L 逐字原文，V0.95 事实零保留 v0.1）+ C1-901 结局演示网关（5 走向覆盖矩阵演示）。
+- **M1-P0 交互补全（2026-11-16）**：C1-005 截图查看器（裁剪图 ↔ 完整记录、撕裂断口、Esc/遮罩关闭）、群聊自动上涌（暂停/继续/2×/回滚，首遍不可跳过）、C1-060「打字又删掉」（长文→「妈 没事」）。
+- **待产品交付后接入**：正式剧本（STORY_SCRIPT，替换 placeholder/，含 §5-H 原文补齐）、C1-007 12/2 纸条「第二课」的查看器接线（A2 剧本入库时）、第 2/3 章注册（M1/M2）、群聊玩家发言深度（PRD-TBD-02 定稿后启用 chat 节点内 right 消息交互）、章节解锁链与回声入口 UI（M2）、FR-13 三分钟路径（M2+）、像素字库与正式美术资源（ASSET_LIST）。
 - **引擎设计已预留**：`settlement` 节点类型（章末结算）、`clues` 条件（线索门控选项）、meta 图鉴（结局图鉴/证据图鉴页）。
 
 ## 8. 变更记录
 
 - 2026-11-12 v0.1：初稿。M0 竖切片交付：三层架构、节点接口、三轴变量映射、双槽位存档、校验器、33 项测试。
 - 2026-11-14 v0.2：P-014 对齐。结局判定改 GAMEPLAY_DESIGN §7.1 五结局矩阵（E5→E4→E3→E1→E2）；状态变量迁移 v_* 数值体系并新增比较条件语法；factRefs 改 EV-xx/§5-X；节点编号统一三位（NODE_ID_RE 收紧，无字母后缀）；存档改单槽位 v2 + 通关失效；占位剧情全量重写为 V0.95 事实基准；测试 41 项（含 128 组合表驱动）。
+- 2026-11-16 v0.3：M1-P0 第一章核心交互。新增截图查看器与完整上下文切换（`fullContext`/`cropped`）、群聊自动上涌纯状态机 `flood.ts`（暂停/恢复/2×，无 skip）、`typing` 节点与 `TypingDelete` 组件；C1-005 接通查看器与 autoFlood，C1-051 标记被裁条目，C1-006 后插入 C1-060「打字又删掉」；测试 55 项。

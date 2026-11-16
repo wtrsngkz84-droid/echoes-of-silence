@@ -303,12 +303,27 @@
   text-align: center;
 }
 
-/* 聊天截图：消息内直接呈现原始聊天画面（F-14a 裁剪版截图） */
+/* 聊天截图：消息内直接呈现原始聊天画面；点击进入查看器（GAMEPLAY_DESIGN §3.2） */
 .chat-msg__screenshot {
   width: 216px;
   background: #14141f;
   border: 2px solid var(--panel-edge);
   box-shadow: 0 3px 0 var(--panel-edge);
+  cursor: pointer;
+  transition: transform 120ms steps(2), box-shadow 120ms steps(2);
+}
+
+.chat-msg__screenshot:hover,
+.chat-msg__screenshot:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 var(--panel-edge);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.chat-msg__screenshot:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 var(--panel-edge);
 }
 
 .shot-caption {
@@ -394,6 +409,247 @@
 
 .phone-chat__foot .blink {
   color: var(--accent);
+}
+
+/* 群聊自动上涌控制（GAMEPLAY_DESIGN §3.1） */
+.flood-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.flood-progress {
+  color: var(--accent);
+  letter-spacing: 0.03em;
+}
+
+.flood-btn {
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--ink);
+  background: #242440;
+  border: 2px solid var(--panel-edge);
+  box-shadow: 0 2px 0 var(--panel-edge);
+}
+
+.flood-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* 截图查看器 */
+.shot-viewer {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(8, 6, 14, 0.86);
+}
+
+.shot-viewer__panel {
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 94%);
+  max-height: 92%;
+  background: #10101c;
+  border: 3px solid var(--panel-edge);
+  box-shadow: 0 10px 0 var(--panel-edge), 0 0 0 6px #2b2b40;
+}
+
+.shot-viewer__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #2a2a44;
+  border-bottom: 3px solid var(--panel-edge);
+}
+
+.shot-viewer__title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.shot-viewer__sub {
+  margin-top: 3px;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+}
+
+.shot-viewer__close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink);
+  background: #242440;
+  border: 2px solid var(--panel-edge);
+  box-shadow: 0 2px 0 var(--panel-edge);
+}
+
+.shot-viewer__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: thin;
+}
+
+.shot-viewer__row {
+  display: flex;
+  flex-direction: column;
+  max-width: 86%;
+}
+
+.shot-viewer__row--left {
+  align-self: flex-start;
+}
+
+.shot-viewer__row--right {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.shot-viewer__bubble {
+  padding: 8px 11px;
+  font-size: 13px;
+  line-height: 1.6;
+  background: #343456;
+  border: 2px solid var(--panel-edge);
+  word-break: break-word;
+}
+
+.shot-viewer__row--right .shot-viewer__bubble {
+  background: #3d5a4e;
+}
+
+.shot-viewer__row--cropped .shot-viewer__bubble {
+  background: #2a2a44;
+  border-style: dashed;
+}
+
+.shot-viewer__time {
+  margin: 2px 4px 0;
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.shot-tear {
+  margin: 10px 0 2px;
+  padding: 0 4px;
+}
+
+.shot-tear__edge {
+  display: block;
+  height: 10px;
+  background:
+    repeating-linear-gradient(135deg, var(--accent) 0 5px, transparent 5px 10px),
+    repeating-linear-gradient(45deg, var(--accent) 0 5px, transparent 5px 10px);
+  opacity: 0.55;
+}
+
+.shot-tear__label {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.shot-viewer__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #1c1c30;
+  border-top: 3px solid var(--panel-edge);
+}
+
+.shot-viewer__hint {
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.shot-viewer__toggle {
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--ink);
+  background: #3a3158;
+  border: 2px solid var(--panel-edge);
+  box-shadow: 0 3px 0 var(--panel-edge);
+}
+
+.shot-viewer__toggle:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+/* 「打字又删掉」输入框演出（GAMEPLAY_DESIGN §2.3） */
+.typing-delete {
+  position: absolute;
+  left: 50%;
+  bottom: 16%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: min(520px, 86%);
+  padding: 14px 16px 10px;
+  background: #14141f;
+  border: 3px solid var(--panel-edge);
+  box-shadow: 0 8px 0 var(--panel-edge);
+}
+
+.typing-delete__label {
+  margin-bottom: 6px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+
+.typing-delete__field {
+  min-height: 96px;
+  padding: 12px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink);
+  background: #1c1c30;
+  border: 2px solid var(--panel-edge);
+  word-break: break-word;
+}
+
+.typing-delete__caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 1px;
+  vertical-align: -0.15em;
+  background: var(--accent);
+  animation: caret-blink 0.9s steps(2) infinite;
+}
+
+@keyframes caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.typing-delete__hint {
+  margin-top: 6px;
+  font-size: 11px;
+  text-align: right;
+  color: var(--ink-faint);
 }
 
 /* 线索 Toast */
@@ -577,6 +833,30 @@
     padding: 8px 12px;
     font-size: 13px;
   }
+
+  .shot-viewer {
+    padding: 8px;
+  }
+
+  .shot-viewer__panel {
+    width: 96%;
+    max-height: 96%;
+  }
+
+  .shot-viewer__bubble {
+    font-size: 12px;
+  }
+
+  .typing-delete {
+    bottom: 10%;
+    width: 88%;
+    padding: 10px 12px 8px;
+  }
+
+  .typing-delete__field {
+    min-height: 72px;
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -611,6 +891,28 @@
 
   .shot-row__bubble {
     font-size: 10px;
+  }
+
+  .shot-viewer__head {
+    padding: 8px;
+  }
+
+  .shot-viewer__body {
+    padding: 8px;
+  }
+
+  .shot-viewer__foot {
+    padding: 8px;
+  }
+
+  .shot-viewer__toggle {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .typing-delete {
+    bottom: 6%;
+    width: 92%;
   }
 
   /* 选项压缩：极小视口下 4 个双行选项也要放得下（如 CP1 的 4 选项） */
