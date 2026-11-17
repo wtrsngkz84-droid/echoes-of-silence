@@ -18,11 +18,13 @@ export function EndingScreen() {
         <div className="ending-card__label">回 声 落 定</div>
         <h2 className={`ending-card__name ending-card__name--${ending.tone}`}>{ending.name}</h2>
         <p className="ending-card__desc">{ending.description}</p>
-        <p className="ending-card__axes">
-          【M0.5 演示 · 判定矩阵输入】
-          {JUDGEMENT_VARS.map((v) => `${v.label} ${Number(flags[v.key] ?? 0)}`).join(' · ')}
-          （判定顺序 E5→E4→E3→E1→E2）
-        </p>
+        {import.meta.env.DEV && (
+          <p className="ending-card__axes">
+            【开发演示 · 判定矩阵输入】
+            {JUDGEMENT_VARS.map((v) => `${v.label} ${Number(flags[v.key] ?? 0)}`).join(' · ')}
+            （判定顺序 E5→E4→E3→E1→E2）
+          </p>
+        )}
         <div className="ending-card__actions">
           <PixelButton variant="accent" onClick={backToTitle}>
             回到标题

@@ -97,6 +97,31 @@ describe('剧情数据完整性', () => {
     expect(typing?.goto).toBe('C1-064');
   });
 
+  it('C1-006 时间线：周日夜里做选择，周一清晨才到妈妈回家', () => {
+    const choice = STORY_INDEX.nodes.get('C1-064');
+    expect(choice?.kind).toBe('inner');
+    expect(choice?.speaker).toBeUndefined();
+    expect(choice?.text).toContain('周日夜里');
+
+    const cold = STORY_INDEX.nodes.get('C1-065');
+    const times = (cold?.messages ?? []).map((msg) => msg.time).filter(Boolean);
+    expect(times).toEqual(['23:41', '23:52']);
+
+    const monday = STORY_INDEX.nodes.get('C1-068');
+    expect(monday?.text).toContain('清晨');
+  });
+
+  it('C1-009 在 12/5–12/6 提供办公室路径；公示页撤回选项不再使用「不选」', () => {
+    const hub = STORY_INDEX.nodes.get('C1-009');
+    const office = (hub?.options ?? []).filter((option) => option.goto === 'C1-117');
+    expect(office).toHaveLength(2);
+    expect(office.every((option) => option.text === '去李老师办公室')).toBe(true);
+
+    const notice = STORY_INDEX.nodes.get('C1-111');
+    const back = (notice?.options ?? []).find((option) => option.id === 'C1-111-O3');
+    expect(back?.text).toBe('先回家，明天再说');
+  });
+
   it('关键原文逐字包含（STORY_BIBLE §5-A/B/C/E/F/G/H/I/J/K）', () => {
     const text = allText();
 

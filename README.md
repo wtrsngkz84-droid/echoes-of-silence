@@ -7,7 +7,7 @@
 ```bash
 npm install     # 安装依赖
 npm run dev     # 本地开发（http://localhost:5173）
-npm test        # 运行单元测试（63 项）
+npm test        # 运行单元测试（66 项）
 npm run build   # 类型检查 + 生产构建（输出 dist/）
 ```
 

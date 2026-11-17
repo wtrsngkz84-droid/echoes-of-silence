@@ -134,4 +134,25 @@ describe('第一章四条章级路径（STORY_SCRIPT §3）', () => {
     });
     expect(run.currentNodeId).toBe('C1-901');
   });
+
+  it('12/5–12/6 办公室路径 → 提前求助 v_xm_help=2 且仍收 EV-06', () => {
+    const run = play([
+      ...COMMON_OPENING,
+      'C1-005-O4',
+      'C1-055-O1',
+      'C1-064-O3',
+      'C1-072-O2',
+      'C1-081-O1',
+      'C1-009-O8',
+      'C1-111-O3',
+      'C1-114-O3',
+    ]);
+    expect(run.flags).toMatchObject({
+      v_xm_help: 2,
+      v_did_teacher: 1,
+    });
+    expect(run.flags.v_did_mom).toBeUndefined();
+    expect(run.clues).toContain('EV-06');
+    expect(run.currentNodeId).toBe('C1-901');
+  });
 });
