@@ -3,6 +3,30 @@
 > 本文件记录真实工作状态，供两位成员的 Qoder 在新会话恢复上下文。  
 > 记录“已经做了什么、验证了什么、还差什么”；计划不等于完成，未运行不等于通过。
 
+## 2026-11-18 — M2 P2：章节解锁链 / 结局画廊 / 章节回顾（开发负责人）
+
+- 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。
+- 起始分支与基线提交：main @ `84ce906`。
+- 任务目标与关联需求：M2 P2——FR-09 章节解锁链、携带重玩/全新开始、结局画廊、章节回顾；EndingScreen 增加画廊入口。
+- 变更文件及原因：
+  - `src/state/progress.ts`（新增）：`unlockedAfter`/`mergeUnlocked`/`mergeCompleted`/`carryableFlags`（过滤 `v_did_*`）。
+  - `src/engine/types.ts`：`ProgressMeta` 增加可选 `completedChapters`、`carriedFlags`。
+  - `src/state/GameContext.tsx`：summary/ending 时解锁章节、记录已完成章节与携带状态；START_RUN 支持 carriedFlags。
+  - `src/components/screens/TitleScreen.tsx`：无存档且已解锁多章时显示「从章节开始」+「携带上次选择」；结局画廊/章节回顾入口。
+  - `src/components/screens/EndingGallery.tsx`（新增）：E1–E5 点亮/锁定。
+  - `src/components/screens/ChapterReview.tsx`（新增）：已完成章节、证据图鉴、结局摘要。
+  - `src/components/screens/EndingScreen.tsx`：增加结局画廊入口。
+  - `src/styles/screens.css`：章节选择、画廊、回顾样式。
+  - 测试：`progress.test.ts`（解锁/携带过滤/完成章节去重）；`save.test.ts` 旧 meta 字段兼容。
+  - 文档：TECHNICAL.md v0.7、README.md、本日志。
+- 已完成：M2 P2 全部功能；标题屏章节选择（含携带重玩）与结局画廊/回顾可用。
+- 验证方法、命令或游玩步骤：`npx tsc --noEmit`；`npx vitest run`；`npm run build`；浏览器注入 meta（三章解锁、E1/E5 已见、已收集证据）验证章节按钮、携带重玩进入 C2-001、结局画廊 2/5、章节回顾三章与证据列表。
+- 实际结果：通过。tsc 通过；88/88 测试；build 成功（gzip JS 112.60 KB、CSS 6.25 KB）；浏览器控制台零报错。
+- 未解决问题、风险与依赖：C3-009 专用尾声数据节点未建（出口由 EndingScreen/标题页承担）；FR-13 三分钟路径、群聊玩家发言深度、正式美术资源仍待；T-P3-4 章间一致性终检待产品侧执行。
+- 新决策编号或待确认提案：无新增；未改产品文档。
+- 下一步及接手角色：产品负责人 T-P3-4 终检；开发评估 FR-13 三分钟路径或美术资源接入。
+- 提交 / PR 链接：本条与上述代码作为单条提交推送 main；哈希以仓库历史为准。
+
 ## 2026-11-18 — M2：第三章接入 C3-001～C3-009（开发负责人）
 
 - 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。

@@ -22,6 +22,7 @@ import type {
 import { CLUES } from '../story/clues';
 import { STORY_INDEX } from '../story/index';
 import { clearRun, hasRun, loadMeta, loadRun, saveMeta, saveRun } from './save';
+import { carryableFlags, mergeCompleted, mergeUnlocked } from './progress';
 
 interface SessionState {
   screen: ScreenId;
@@ -36,7 +37,7 @@ interface SessionState {
 }
 
 type SessionAction =
-  | { type: 'START_RUN'; chapter: ChapterId }
+  | { type: 'START_RUN'; chapter: ChapterId; carriedFlags?: RunState['flags'] }
   | { type: 'CONTINUE_RUN'; run: RunState }
   | { type: 'ADVANCE' }
   | { type: 'CHOOSE'; optionId: string }
@@ -88,9 +89,18 @@ function settleRun(prev: SessionState, prevRun: RunState | null, nextRun: RunSta
 
   let screen = prev.screen;
   let endingId = prev.endingId;
+  if (node?.kind === 'summary' || node?.kind === 'ending') {
+    meta = {
+      ...meta,
+      unlockedChapters: mergeUnlocked(meta.unlockedChapters, node.chapter),
+      completedChapters: mergeCompleted(meta, node.chapter),
+      carriedFlags: carryableFlags(nextRun.flags),
+    };
+  }
   if (node?.kind === 'ending') {
     endingId = evaluateEnding(nextRun.flags);
     screen = 'ending';
+    meta = { ...meta, firstRunCompleted: true };
     if (!meta.endingsSeen.includes(endingId)) {
       meta = { ...meta, endingsSeen: [...meta.endingsSeen, endingId] };
     }
@@ -117,7 +127,10 @@ function persist(next: SessionState, prevRun: RunState | null): SessionState {
 function reducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
     case 'START_RUN': {
-      const run = startChapter(STORY_INDEX, action.chapter);
+      const base = startChapter(STORY_INDEX, action.chapter);
+      const run: RunState = action.carriedFlags
+        ? { ...base, flags: { ...action.carriedFlags, ...base.flags } }
+        : base;
       const settled = settleRun(state, null, run);
       const next: SessionState = {
         ...state,
@@ -210,7 +223,7 @@ function reducer(state: SessionState, action: SessionAction): SessionState {
 
 interface GameContextValue {
   state: SessionState;
-  startRun: (chapter: ChapterId) => void;
+  startRun: (chapter: ChapterId, carriedFlags?: RunState['flags']) => void;
   continueRun: () => void;
   advance: () => void;
   choose: (optionId: string) => void;
@@ -235,7 +248,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const value = useMemo<GameContextValue>(
     () => ({
       state,
-      startRun: (chapter) => dispatch({ type: 'START_RUN', chapter }),
+      startRun: (chapter, carriedFlags) =>
+        dispatch({ type: 'START_RUN', chapter, carriedFlags }),
       continueRun: () => {
         const run = loadRun();
         if (run) dispatch({ type: 'CONTINUE_RUN', run });

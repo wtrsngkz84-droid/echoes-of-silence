@@ -1,11 +1,34 @@
 import { useState } from 'react';
 import { useGame } from '../../state/GameContext';
+import type { ChapterId } from '../../engine/types';
+import { STORY_INDEX } from '../../story/index';
 import { PixelButton } from '../ui/PixelButton';
+import { EndingGallery } from './EndingGallery';
+import { ChapterReview } from './ChapterReview';
 import '../../styles/screens.css';
 
+const CHAPTER_LABELS: Partial<Record<ChapterId, string>> = {
+  ch1: '第一章',
+  ch2: '第二章',
+  ch3: '第三章',
+};
+
 export function TitleScreen() {
-  const { state, setScreen, continueRun } = useGame();
+  const { state, setScreen, continueRun, startRun } = useGame();
   const [confirmNew, setConfirmNew] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [carry, setCarry] = useState(true);
+
+  const unlocked = (['ch1', 'ch2', 'ch3'] as ChapterId[]).filter(
+    (chapter) =>
+      state.meta.unlockedChapters.includes(chapter) &&
+      Boolean(STORY_INDEX.chapterStarts[chapter]),
+  );
+  const showChapterSelect =
+    !state.hasSave && (state.meta.firstRunCompleted || unlocked.length > 1);
+  const carried = state.meta.carriedFlags;
+  const hasCarried = Boolean(carried && Object.keys(carried).length > 0);
 
   const startNew = () => {
     if (state.hasSave) {
@@ -27,12 +50,55 @@ export function TitleScreen() {
           继续游戏
         </PixelButton>
       </div>
+
+      {showChapterSelect && (
+        <div className="chapter-select">
+          <div className="chapter-select__label">从章节开始</div>
+          {hasCarried && (
+            <label className="chapter-select__carry">
+              <input
+                type="checkbox"
+                checked={carry}
+                onChange={(event) => setCarry(event.target.checked)}
+              />
+              携带上次选择
+            </label>
+          )}
+          <div className="chapter-select__buttons">
+            {unlocked.map((chapter) => (
+              <PixelButton
+                key={chapter}
+                onClick={() => startRun(chapter, carry && hasCarried ? carried : undefined)}
+              >
+                {CHAPTER_LABELS[chapter] ?? chapter}
+              </PixelButton>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="meta-links">
+        {state.meta.endingsSeen.length > 0 && (
+          <PixelButton variant="ghost" onClick={() => setGalleryOpen(true)}>
+            结局画廊
+          </PixelButton>
+        )}
+        {(state.meta.completedChapters ?? []).length > 0 && (
+          <PixelButton variant="ghost" onClick={() => setReviewOpen(true)}>
+            章节回顾
+          </PixelButton>
+        )}
+      </div>
+
       <div className="title-screen__foot">
         <span>
           <span className="badge">全三章 · 正式剧本</span> 结局判定沿用四变量矩阵
         </span>
         <span>同一周 · 三个视角 · 你的选择决定回声落点</span>
       </div>
+
+      <EndingGallery open={galleryOpen} onClose={() => setGalleryOpen(false)} />
+      <ChapterReview open={reviewOpen} onClose={() => setReviewOpen(false)} />
 
       {confirmNew && (
         <div

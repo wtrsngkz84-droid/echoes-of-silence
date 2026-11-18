@@ -305,6 +305,10 @@ export interface ProgressMeta {
   endingsSeen: EndingId[];
   /** 证据图鉴：任意局中收集过的证据 */
   clueLog: string[];
+  /** 已完成的章节（章节回顾，旧档缺失按空数组） */
+  completedChapters?: ChapterId[];
+  /** 最近一次章末状态，供「携带重玩」（v_did_* 已过滤） */
+  carriedFlags?: Flags;
 }
 
 export type ScreenId = 'title' | 'warning' | 'game' | 'ending';

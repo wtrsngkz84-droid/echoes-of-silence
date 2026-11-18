@@ -98,6 +98,26 @@ describe('LocalStorage 存档（单槽位 v2，P-014）', () => {
     expect(loadRun()?.deletedMessages).toEqual(['对不起', '你还好吗']);
   });
 
+  it('旧 meta 缺少 completedChapters/carriedFlags 时兼容', () => {
+    setStorageBackendForTests(
+      makeStorage({
+        'eos.meta.v2': JSON.stringify({
+          version: 2,
+          updatedAt: 1,
+          data: {
+            firstRunCompleted: true,
+            unlockedChapters: ['ch1'],
+            endingsSeen: ['E1'],
+            clueLog: ['EV-01'],
+          },
+        }),
+      }),
+    );
+    const meta = loadMeta();
+    expect(meta.completedChapters ?? []).toEqual([]);
+    expect(meta.carriedFlags).toBeUndefined();
+  });
+
   it('损坏的存档 JSON / 版本号不匹配 按无存档处理', () => {
     setStorageBackendForTests(
       makeStorage({
