@@ -23,6 +23,7 @@ export function ChoiceList({ options, onSelect }: ChoiceListProps) {
           <span className="choice-btn__key">{index + 1}</span>
           {option.text}
           {option.hint && <span className="choice-btn__hint">{option.hint}</span>}
+          {option.price && <span className="choice-btn__price">代价：{option.price}</span>}
         </button>
       ))}
     </div>

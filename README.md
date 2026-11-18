@@ -7,13 +7,13 @@
 ```bash
 npm install     # 安装依赖
 npm run dev     # 本地开发（http://localhost:5173）
-npm test        # 运行单元测试（66 项）
+npm test        # 运行单元测试（78 项）
 npm run build   # 类型检查 + 生产构建（输出 dist/）
 ```
 
 ## 当前状态
 
-第一章正式剧本（STORY_SCRIPT V0.1）已入库：C1-001～C1-010（四自证变体、退/留群、图书角、12/5–12/8 求助窗口、章末小结）+ 截图查看器、群聊自动上涌、「打字又删掉」+ 单槽位 LocalStorage 存档 + 像素风界面。第 2/3 章待交付；C1-901 为演示网关（M2 移除）。详见 [docs/TECHNICAL.md](docs/TECHNICAL.md)。
+第一、二章正式剧本已入库：C1-001～C1-010、C2-001～C2-009（第二章含裁剪之夜、群爆被拥护感、推理指认、六项担责清单与时钟、章末小结）；第三章组件先行（输入框、速写本、价格标签）。第 3 章剧本待交付；C2-901 为第三章接入前的临时演示网关。详见 [docs/TECHNICAL.md](docs/TECHNICAL.md)。
 
 ## 项目文档
 

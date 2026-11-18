@@ -26,6 +26,30 @@
 - 变更文件：docs/STORY_BIBLE.md（V0.96：§3 12/12 周六 + §16）、docs/STORY_FLOW.md（V0.91：C2-09 12/13 晚 + C2-06 执行顺序注 + 版本行）、docs/GAMEPLAY_DESIGN.md（V0.91：§3.3/§9 立场落档 + §11）、docs/PRODUCT_TASKS.md（U-013～U-015 状态 + §4）、PROJECT_DECISIONS.md（§10 确认记录）。未改动 src/。
 - 下一步及接手角色：开发按 M2 指令执行第二章接入（ch2.ts + 推理指认/担责清单/时钟三组件 + 第三章组件先行）；产品侧启动 T-P3-3 第三章剧本；U-001～U-004（P1/P2 终审）仍待追认。
 - 提交 / PR 链接：本次单条提交至 main；哈希以仓库 Git 历史为准（不在提交前预填）。
+## 2026-11-17 — M2：第二章接入 + 第三章组件先行（开发负责人）
+
+- 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。
+- 起始分支与基线提交：main @ `402fcbb`（STORY_SCRIPT V0.2）。
+- 任务目标与关联需求：M2 P0/P1——第二章 C2-001～C2-009 入库、四类新交互组件、第三章输入框/速写本/价格标签先行；M2 P2 的 EndingScreen 正式化。
+- 变更文件及原因：
+  - `src/story/ch2.ts`（新增）：C2-001～C2-009 + 子节点；电话、裁剪、群爆四变体、失控蒙太奇/推理、公示反噬、责任三岔/六项清单、12/13 甩锅、C2-009 小结；C2-901 临时网关。
+  - `src/story/ch1.ts`：C1-010 → C2-001；移除 C1-901/CE-901；导出 §5-C 共享常量供第二章复用。
+  - `src/story/index.ts`：注册 CH2_NODES 与 ch2 起始节点。
+  - `src/story/ch2Summary.ts`（新增）+ `ChapterSummary.tsx`：按章节选择摘要渲染表（C2 duty/meme/ask 行、倒计时、引导语）。
+  - `src/engine/types.ts`：新增 call/crop/reasoning/checklist 节点与内容类型、`StoryOption.price`、`RunState.deletedMessages`、`ChecklistContent.fullEffects/partialEffects`。
+  - `src/engine/engine.ts`：新增 `completeChecklist`（效果由数据层定义）；`validation.ts` 覆盖新节点类型。
+  - `src/state/GameContext.tsx`：新增 CHECKLIST_SUBMIT 与 DELETE_MESSAGE；`save.test.ts` 覆盖旧档 deletedMessages 兼容。
+  - 新组件：`PhoneCall`、`CropNight`、`ReasoningPanel`（+ 纯状态机 `reasoningState.ts`）、`DutyChecklist`、`MessageComposer`、`Sketchbook`；`GameScreen` 接线；`ChoiceList` 渲染价格标签；`GameMenu` 在 ch3 显示速写本入口。
+  - `EndingScreen.tsx`：移除判定矩阵演示块，恢复正式结局卡。
+  - 测试：`ch2.paths.test.ts` 四条路径 + 清单两档 + C2-005 四变体 × 留群；`story.test.ts` 增 §5-D、C2-004 配文、C2-009 日期、C2 摘要；`reasoningState.test.ts`。
+  - 文档：TECHNICAL.md v0.5、README.md、本日志。
+- 已完成：任务 A（P0）第二章数据与章节链、任务 B（P0）推理/清单/时钟组件、任务 C（P1）第三章三组件先行；任务 D 中 EndingScreen 正式化已完成。
+- 验证方法、命令或游玩步骤：`npx tsc --noEmit`；`npx vitest run`；`npm run build`；应用内浏览器分点验证电话、裁剪（错误反馈/目标条/配文/发送区）、推理（错误可重试/正确推进）、清单（六项全选 → duty=2）、C2-009 摘要、C2-901 演示与结局卡；刷新后控制台无报错。
+- 实际结果：通过。tsc 通过；78/78 测试；build 成功（gzip JS 105.77 KB、CSS 6.02 KB）。C2 四条路径终态：duty 2 / -1 / 0 / +1；C2-005 四变体与留群渲染测试通过；旧 v2 档 deletedMessages 缺失按空数组。
+- 未解决问题、风险与依赖：任务 D 的章节解锁链（FR-09）、结局画廊、章节回顾摘要尚未实现（P2 待续）；C3 剧本 V0.3 已随远端交付，尚未接入；U-013～U-015 已由产品负责人确认。
+- 新决策编号或待确认提案：无新增；第二章 U-013～U-015 按剧本文本执行，未改产品文档。
+- 下一步及接手角色：开发接入第三章（T-P3-3）或继续 M2 P2；产品负责人审阅 STORY_SCRIPT V0.3。
+- 提交 / PR 链接：本条与上述代码作为单条提交推送 main；哈希以仓库历史为准。
 
 ## 2026-11-17 — P3 第二章剧本初稿（产品经理 / 剧情策划）
 

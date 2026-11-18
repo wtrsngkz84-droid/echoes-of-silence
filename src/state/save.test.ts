@@ -82,6 +82,22 @@ describe('LocalStorage 存档（单槽位 v2，P-014）', () => {
     expect(meta.firstRunCompleted).toBe(true);
   });
 
+  it('旧 v2 档缺少 deletedMessages 时按空数组兼容；新字段可往返', () => {
+    const legacy = sampleRun();
+    setStorageBackendForTests(
+      makeStorage({
+        'eos.save.v2': JSON.stringify({ version: 2, updatedAt: 1, data: legacy }),
+      }),
+    );
+    const loaded = loadRun();
+    expect(loaded?.deletedMessages).toBeUndefined();
+    expect(loaded?.deletedMessages ?? []).toEqual([]);
+
+    setStorageBackendForTests(makeStorage());
+    saveRun(sampleRun({ deletedMessages: ['对不起', '你还好吗'] }));
+    expect(loadRun()?.deletedMessages).toEqual(['对不起', '你还好吗']);
+  });
+
   it('损坏的存档 JSON / 版本号不匹配 按无存档处理', () => {
     setStorageBackendForTests(
       makeStorage({
