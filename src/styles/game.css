@@ -185,6 +185,160 @@
   color: var(--ink-faint);
 }
 
+.choice-btn__price {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--accent);
+}
+
+/* 输入框（GD §3.4，第三章） */
+.message-composer {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  transform: translateX(-50%);
+  z-index: 25;
+  width: min(560px, 90%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #10101c;
+  border: 3px solid var(--panel-edge);
+  box-shadow: 0 8px 0 var(--panel-edge);
+}
+
+.message-composer__candidates {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.message-composer__candidate {
+  padding: 7px 10px;
+  font-size: 12px;
+  text-align: left;
+  color: var(--ink-dim);
+  background: #1c1c30;
+  border: 2px solid var(--panel-edge);
+}
+
+.message-composer__input {
+  width: 100%;
+  resize: vertical;
+  padding: 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: #242440;
+  border: 2px solid var(--panel-edge);
+}
+
+.message-composer__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.message-composer__delete,
+.message-composer__send {
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--ink);
+  background: #242440;
+  border: 2px solid var(--panel-edge);
+  box-shadow: 0 2px 0 var(--panel-edge);
+}
+
+.message-composer__send {
+  background: #3a3158;
+  color: var(--accent);
+}
+
+/* 速写本（GD §3.6，第三章） */
+.sketchbook {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(8, 6, 14, 0.86);
+}
+
+.sketchbook__card {
+  width: min(560px, 94%);
+  max-height: 92%;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #14141f;
+  border: 3px solid var(--panel-edge);
+  box-shadow: 0 10px 0 var(--panel-edge);
+}
+
+.sketchbook__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sketchbook__kicker,
+.sketchbook__label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.sketchbook__title {
+  margin-top: 3px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.sketchbook__close {
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  color: var(--ink);
+  background: #242440;
+  border: 2px solid var(--panel-edge);
+}
+
+.sketchbook__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sketchbook__empty {
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.sketchbook__pages,
+.sketchbook__deleted {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+
+.sketchbook__pages span {
+  display: block;
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
 /* 手机聊天 */
 .phone-chat {
   position: absolute;
@@ -482,6 +636,356 @@
 }
 
 .chapter-summary__continue:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+/* 电话演出（C2-003） */
+.phone-call {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  transform: translateX(-50%);
+  z-index: 20;
+  width: min(420px, 88%);
+  background: #10101c;
+  border: 3px solid var(--panel-edge);
+  box-shadow: 0 8px 0 var(--panel-edge), 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+.phone-call__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #2a2a44;
+  border-bottom: 3px solid var(--panel-edge);
+}
+
+.phone-call__caller {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.phone-call__status {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.phone-call__dot {
+  width: 12px;
+  height: 12px;
+  background: var(--good);
+  border: 2px solid var(--panel-edge);
+  animation: blink 1.2s steps(2) infinite;
+}
+
+.phone-call__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.phone-call__line p {
+  padding: 9px 12px;
+  font-size: 14px;
+  line-height: 1.65;
+  background: #343456;
+  border: 2px solid var(--panel-edge);
+}
+
+.phone-call__time {
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+/* 裁剪之夜（C2-004） */
+.crop-night,
+.reasoning-panel,
+.duty-checklist {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(8, 6, 14, 0.86);
+}
+
+.crop-night__panel,
+.reasoning-panel__card,
+.duty-checklist__card {
+  display: flex;
+  flex-direction: column;
+  width: min(620px, 94%);
+  max-height: 92%;
+  background: #10101c;
+  border: 3px solid var(--panel-edge);
+  box-shadow: 0 10px 0 var(--panel-edge), 0 0 0 6px #2b2b40;
+}
+
+.crop-night__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #2a2a44;
+  border-bottom: 3px solid var(--panel-edge);
+}
+
+.crop-night__title,
+.reasoning-panel__prompt,
+.duty-checklist__prompt {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.crop-night__sub,
+.crop-night__count,
+.reasoning-panel__kicker,
+.duty-checklist__kicker {
+  margin-top: 3px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+.crop-night__count {
+  color: var(--accent);
+}
+
+.crop-night__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.crop-night__row {
+  display: flex;
+  flex-direction: column;
+  max-width: 88%;
+  padding: 0;
+  text-align: left;
+  background: transparent;
+  border: none;
+}
+
+.crop-night__row--right {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.crop-night__bubble {
+  padding: 7px 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  background: #343456;
+  border: 2px solid var(--panel-edge);
+  color: var(--ink);
+}
+
+.crop-night__row--right .crop-night__bubble {
+  background: #3d5a4e;
+}
+
+.crop-night__row--target .crop-night__bubble {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(232, 176, 75, 0.35);
+}
+
+.crop-night__time {
+  margin: 2px 4px 0;
+  font-size: 9px;
+  color: var(--ink-faint);
+}
+
+.crop-night__feedback {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.crop-night__inner,
+.crop-night__guide {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+
+.crop-night__guide {
+  color: var(--accent);
+}
+
+.crop-night__body--caption {
+  gap: 10px;
+}
+
+.crop-night__crop-card {
+  padding: 10px 12px;
+  background: #2a2a44;
+  border: 2px dashed var(--accent);
+}
+
+.crop-night__crop-head,
+.crop-night__caption-label {
+  margin-bottom: 4px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+.crop-night__caption {
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  background: #1c1c30;
+  border: 2px solid var(--panel-edge);
+}
+
+.crop-night__draft {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--ink-dim);
+  background: #242440;
+  border-left: 3px solid var(--accent);
+}
+
+.crop-night__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.crop-night__ghost,
+.crop-night__send {
+  padding: 7px 12px;
+  font-size: 12px;
+  color: var(--ink);
+  background: #242440;
+  border: 2px solid var(--panel-edge);
+  box-shadow: 0 2px 0 var(--panel-edge);
+}
+
+.crop-night__send {
+  background: #3a3158;
+  color: var(--accent);
+}
+
+/* 推理指认（C2-006） */
+.reasoning-panel__card,
+.duty-checklist__card {
+  padding: 20px 22px;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.reasoning-panel__prompt,
+.duty-checklist__prompt {
+  margin: 0;
+}
+
+.reasoning-panel__clues {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+
+.reasoning-panel__candidates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.reasoning-panel__candidate {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--ink);
+  background: #242440;
+  border: 2px solid var(--panel-edge);
+  box-shadow: 0 3px 0 var(--panel-edge);
+  text-align: left;
+}
+
+.reasoning-panel__feedback {
+  font-size: 13px;
+  color: var(--accent);
+}
+
+/* 担责清单（C2-008） */
+.duty-checklist__clock {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.duty-checklist__items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.duty-checklist__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 11px;
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: left;
+  color: var(--ink-dim);
+  background: #1c1c30;
+  border: 2px solid var(--panel-edge);
+}
+
+.duty-checklist__item--checked {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.duty-checklist__box {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: var(--panel-edge);
+  background: var(--accent);
+  border: 2px solid var(--panel-edge);
+}
+
+.duty-checklist__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.duty-checklist__submit {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--ink);
+  background: #3a3158;
+  border: 2px solid var(--panel-edge);
+  box-shadow: 0 3px 0 var(--panel-edge);
+}
+
+.duty-checklist__submit:active {
   transform: translateY(3px);
   box-shadow: none;
 }

@@ -4,6 +4,7 @@ import {
   advanceNode,
   canAdvance,
   chooseOption,
+  completeChecklist,
   playNextChatMessage,
   startChapter,
   visibleChatMessages,
@@ -39,6 +40,8 @@ type SessionAction =
   | { type: 'ADVANCE' }
   | { type: 'CHOOSE'; optionId: string }
   | { type: 'CHAT_NEXT' }
+  | { type: 'CHECKLIST_SUBMIT'; selectedIds: string[] }
+  | { type: 'DELETE_MESSAGE'; text: string }
   | { type: 'SET_SCREEN'; screen: ScreenId }
   | { type: 'OPEN_MENU' }
   | { type: 'CLOSE_MENU' }
@@ -157,6 +160,24 @@ function reducer(state: SessionState, action: SessionAction): SessionState {
       if (state.run.chatPlayed >= visibleChatMessages(state.run, node).length) return state;
       return { ...state, run: playNextChatMessage(state.run) };
     }
+    case 'CHECKLIST_SUBMIT': {
+      if (!state.run) return state;
+      const settled = settleRun(
+        state,
+        state.run,
+        completeChecklist(state.run, STORY_INDEX, action.selectedIds),
+      );
+      return persist({ ...state, ...settled }, state.run);
+    }
+    case 'DELETE_MESSAGE': {
+      if (!state.run) return state;
+      const nextRun: RunState = {
+        ...state.run,
+        deletedMessages: [...(state.run.deletedMessages ?? []), action.text],
+      };
+      saveRun(nextRun);
+      return { ...state, run: nextRun };
+    }
     case 'SET_SCREEN':
       return { ...state, screen: action.screen };
     case 'OPEN_MENU':
@@ -183,6 +204,8 @@ interface GameContextValue {
   advance: () => void;
   choose: (optionId: string) => void;
   chatNext: () => void;
+  submitChecklist: (selectedIds: string[]) => void;
+  recordDeletedMessage: (text: string) => void;
   setScreen: (screen: ScreenId) => void;
   openMenu: () => void;
   closeMenu: () => void;
@@ -208,6 +231,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       advance: () => dispatch({ type: 'ADVANCE' }),
       choose: (optionId) => dispatch({ type: 'CHOOSE', optionId }),
       chatNext: () => dispatch({ type: 'CHAT_NEXT' }),
+      submitChecklist: (selectedIds) => dispatch({ type: 'CHECKLIST_SUBMIT', selectedIds }),
+      recordDeletedMessage: (text) => dispatch({ type: 'DELETE_MESSAGE', text }),
       setScreen: (screen) => dispatch({ type: 'SET_SCREEN', screen }),
       openMenu: () => dispatch({ type: 'OPEN_MENU' }),
       closeMenu: () => dispatch({ type: 'CLOSE_MENU' }),

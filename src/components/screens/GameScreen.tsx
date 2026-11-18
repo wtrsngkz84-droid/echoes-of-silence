@@ -12,10 +12,14 @@ import { useTypewriter } from '../../hooks/useTypewriter';
 import { useGame } from '../../state/GameContext';
 import { CHARACTERS } from '../../story/characters';
 import { STORY_INDEX } from '../../story/index';
+import { CropNight } from '../chat/CropNight';
+import { PhoneCall } from '../chat/PhoneCall';
 import { PhoneChat } from '../chat/PhoneChat';
 import { ScreenshotViewer } from '../chat/ScreenshotViewer';
 import { ChoiceList } from '../dialogue/ChoiceList';
 import { DialogueBox } from '../dialogue/DialogueBox';
+import { DutyChecklist } from '../dialogue/DutyChecklist';
+import { ReasoningPanel } from '../dialogue/ReasoningPanel';
 import { TypingDelete } from '../dialogue/TypingDelete';
 import { ChapterSummary } from './ChapterSummary';
 import { CluePanel } from '../clue/CluePanel';
@@ -88,6 +92,9 @@ export function GameScreen() {
       if (options.length === 0 && canAdvance(run, node)) {
         game.advance();
       }
+      return;
+    }
+    if (node.kind === 'crop' || node.kind === 'reasoning' || node.kind === 'checklist') {
       return;
     }
     if (!typer.done) {
@@ -182,6 +189,14 @@ export function GameScreen() {
           onChatNext={game.chatNext}
           onOpenScreenshot={setViewerContent}
         />
+      ) : node.kind === 'call' && node.call ? (
+        <PhoneCall call={node.call} />
+      ) : node.kind === 'crop' && node.crop ? (
+        <CropNight content={node.crop} onComplete={game.advance} />
+      ) : node.kind === 'reasoning' && node.reasoning ? (
+        <ReasoningPanel content={node.reasoning} onSolved={game.advance} />
+      ) : node.kind === 'checklist' && node.checklist ? (
+        <DutyChecklist content={node.checklist} onSubmit={game.submitChecklist} />
       ) : node.kind === 'typing' && node.typing ? (
         <TypingDelete effect={node.typing} onDone={() => setTypingDone(true)} />
       ) : node.kind === 'summary' ? (

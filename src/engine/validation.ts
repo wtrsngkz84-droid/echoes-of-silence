@@ -91,7 +91,33 @@ export function validateStory(
       if (typeof node.typing?.final !== 'string') {
         issues.push({ level: 'error', nodeId: where, message: 'typing 节点缺少 typing.final' });
       }
-    } else if (node.kind !== 'summary' && !node.text && !(node.variants?.length)) {
+    } else if (node.kind === 'call') {
+      if (!node.call || node.call.lines.length === 0) {
+        issues.push({ level: 'error', nodeId: where, message: 'call 节点缺少 call.lines' });
+      }
+    } else if (node.kind === 'crop') {
+      if (!node.crop || node.crop.messages.length === 0) {
+        issues.push({ level: 'error', nodeId: where, message: 'crop 节点缺少消息' });
+      } else if (node.crop.targetIndex < 0 || node.crop.targetIndex >= node.crop.messages.length) {
+        issues.push({ level: 'error', nodeId: where, message: 'crop.targetIndex 越界' });
+      } else if (!node.crop.defaultCaption.trim()) {
+        issues.push({ level: 'error', nodeId: where, message: 'crop 节点缺少默认配文' });
+      }
+    } else if (node.kind === 'reasoning') {
+      if (!node.reasoning || node.reasoning.candidates.length === 0) {
+        issues.push({ level: 'error', nodeId: where, message: 'reasoning 节点缺少候选' });
+      } else if (!node.reasoning.candidates.some((item) => item.correct)) {
+        issues.push({ level: 'error', nodeId: where, message: 'reasoning 节点缺少正确候选' });
+      }
+    } else if (node.kind === 'checklist') {
+      if (!node.checklist || node.checklist.items.length === 0) {
+        issues.push({ level: 'error', nodeId: where, message: 'checklist 节点缺少清单项' });
+      }
+    } else if (
+      node.kind !== 'summary' &&
+      !node.text &&
+      !(node.variants?.length)
+    ) {
       issues.push({ level: 'error', nodeId: where, message: `非 chat 节点缺少 text` });
     }
 

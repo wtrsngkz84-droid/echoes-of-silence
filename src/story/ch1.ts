@@ -4,10 +4,10 @@ import type { ScreenshotContent, ScreenshotRow, StoryNode } from '../engine/type
  * 第一章正式剧本数据（STORY_SCRIPT.md V0.1，T-P3-1）。
  * 事实与字面唯一来源：STORY_BIBLE.md §5（EV-01～EV-11 / §5-A～L）。
  * 状态变量仅使用 GAMEPLAY_DESIGN §5 的 v_*；行动窗口临时标记使用 v_did_*。
- * 节点编号三位 C1-001～C1-010 + 子节点；C1-901/CE-901 为演示网关（M2 移除）。
+ * 节点编号三位 C1-001～C1-010 + 子节点；章节结束进入第二章 C2-001。
  */
 
-const FULL_CONTEXT: ScreenshotRow[] = [
+export const PRIVATE_CHAT_FULL_CONTEXT: ScreenshotRow[] = [
   { side: 'left', text: '小满 在吗', time: '20:12' },
   {
     side: 'left',
@@ -51,7 +51,7 @@ const FULL_CONTEXT: ScreenshotRow[] = [
   },
 ];
 
-const CROPPED_SCREENSHOT: ScreenshotContent = {
+export const CROPPED_SCREENSHOT: ScreenshotContent = {
   caption: '截图 · 11/26 20:33',
   statusTime: '21:47',
   header: '林小满',
@@ -62,14 +62,14 @@ const CROPPED_SCREENSHOT: ScreenshotContent = {
       time: '20:33',
     },
   ],
-  fullContext: FULL_CONTEXT,
+  fullContext: PRIVATE_CHAT_FULL_CONTEXT,
 };
 
-const FULL_SCREENSHOT: ScreenshotContent = {
+export const FULL_SCREENSHOT: ScreenshotContent = {
   caption: '截图 · 完整私聊记录 11/26 20:12–20:58',
   statusTime: '22:40',
   header: '周予安',
-  rows: FULL_CONTEXT,
+  rows: PRIVATE_CHAT_FULL_CONTEXT,
 };
 
 export const CH1_NODES: StoryNode[] = [
@@ -1674,73 +1674,7 @@ export const CH1_NODES: StoryNode[] = [
     tone: 'cold',
     beat: '回声小结',
     title: '12/8 · 周二 · 晚',
-    goto: 'C1-901',
+    goto: 'C2-001',
   },
 
-  // ══════════ 演示网关（M2 移除） ══════════
-  {
-    id: 'C1-901',
-    chapter: 'ch1',
-    kind: 'narration',
-    scene: 'classroom',
-    tone: 'neutral',
-    beat: '演示网关',
-    title: '演示 · 结局判定网关（M2 移除）',
-    text: '第一章到此为止。第 2 章（周予安）、第 3 章（陈屿）将在 M1/M2 交付——这里先开放结局判定矩阵的演示：选择另外两条线的关键走向，看看回声最终落在哪张结局卡上。',
-    options: [
-      {
-        id: 'C1-901-O1',
-        text: '演示：予安最终担责',
-        hint: '第 2 章走向',
-        requires: { none: ['v_did_duty'] },
-        effects: { v_zy_duty: 2, v_did_duty: 1 },
-        goto: 'C1-901',
-      },
-      {
-        id: 'C1-901-O2',
-        text: '演示：予安加码压制',
-        hint: '第 2 章走向',
-        requires: { none: ['v_did_duty'] },
-        effects: { v_zy_duty: -1, v_did_duty: 1 },
-        goto: 'C1-901',
-      },
-      {
-        id: 'C1-901-O3',
-        text: '演示：陈屿交出证据',
-        hint: '第 3 章走向',
-        requires: { none: ['v_did_act'] },
-        effects: { v_cy_act: 2, v_did_act: 1 },
-        goto: 'C1-901',
-      },
-      {
-        id: 'C1-901-O4',
-        text: '演示：陈屿群内公开发声',
-        hint: '第 3 章走向',
-        requires: { none: ['v_did_act'] },
-        effects: { v_cy_act: 3, v_did_act: 1 },
-        goto: 'C1-901',
-      },
-      {
-        id: 'C1-901-O5',
-        text: '演示：陈屿曾转发表情包',
-        hint: '第 3 章走向',
-        requires: { none: ['v_did_echo'] },
-        effects: { v_cy_echo: 1, v_did_echo: 1 },
-        goto: 'C1-901',
-      },
-      {
-        id: 'C1-901-O6',
-        text: '进入结局结算',
-        hint: '按结局判定矩阵求值',
-        goto: 'CE-901',
-      },
-    ],
-  },
-  {
-    id: 'CE-901',
-    chapter: 'ch1',
-    kind: 'ending',
-    beat: '演示网关',
-    endingNote: '结局 id 由引擎按 GAMEPLAY_DESIGN §7.1 判定矩阵求值（E5→E4→E3→E1→E2，E2 兜底）',
-  },
 ];

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { STORY_INDEX, storyIssues } from './index';
 import { buildChapterSummary } from './ch1Summary';
+import { buildChapter2Summary } from './ch2Summary';
 import { CLUES } from './clues';
 import { ENDINGS } from './endings';
 import { CHARACTERS } from './characters';
@@ -12,6 +13,19 @@ function allText(): string {
     if (node.text) parts.push(node.text);
     for (const variant of node.variants ?? []) parts.push(variant.text);
     for (const msg of node.messages ?? []) parts.push(msg.text);
+    for (const line of node.call?.lines ?? []) parts.push(line.text);
+    if (node.crop) {
+      parts.push(node.crop.defaultCaption);
+      for (const row of node.crop.messages) parts.push(row.text);
+    }
+    if (node.reasoning) {
+      parts.push(node.reasoning.prompt, ...node.reasoning.clues);
+      for (const candidate of node.reasoning.candidates) parts.push(candidate.text);
+    }
+    if (node.checklist) {
+      parts.push(node.checklist.prompt);
+      for (const item of node.checklist.items) parts.push(item.label);
+    }
     if (node.typing) parts.push(node.typing.draft, node.typing.final);
   }
   return parts.join('\n');
@@ -172,12 +186,33 @@ describe('剧情数据完整性', () => {
       '投稿：初二 3 班有人抢组员成果还会装可怜，截图为证，大家认清楚。抱着老师大腿的转学生罢了。',
     );
     expect(text).toContain(
+      '我跟你说个事，你可别生气。周四放学我看到林小满进李老师办公室了，待了好久。她跟老师说了什么谁知道？反正申报表你们都交了，她名字还在你后头呢——这种人你防着点。',
+    );
+    expect(text).toContain(
       '听说有的组为一张申报表闹得不愉快。都要评优选先的人了，『团结』两个字怎么写，不用我再教了吧。',
     );
     expect(text).toContain(
       '本组成果归属公示：林小满 100%，其余组员 0%。——『报告的思路和大部分内容是我写的』',
     );
     expect(text).toContain('我不信那张截图。但我不敢在群里说。——对不起。');
+  });
+
+  it('C2-004 裁剪数据指向 20:33，发布配文为 §5-E 定稿', () => {
+    const node = STORY_INDEX.nodes.get('C2-004');
+    expect(node?.crop?.targetIndex).toBe(5);
+    expect(node?.crop?.messages[5].time).toBe('20:33');
+    expect(node?.crop?.defaultCaption).toContain(
+      '练了十六遍。现在她私聊跟我说 报告的思路和大部分内容是她写的。大家评评理 这算什么？',
+    );
+    expect(node?.crop?.defaultCaption).toContain(
+      '还有 她周四放学专门去办公室找了李老师。说了什么 大家自己想。',
+    );
+  });
+
+  it('C2-009 日期为剧本修订后的 12/13 周日晚', () => {
+    const node = STORY_INDEX.nodes.get('C2-009');
+    expect(node?.chapter).toBe('ch2');
+    expect(node?.title).toContain('12/13');
   });
 
   it('C1-010 摘要按状态渲染，四条路径的关键行完整', () => {
@@ -212,5 +247,22 @@ describe('剧情数据完整性', () => {
       v_did_teacher: 1,
     }).map((line) => line.text);
     expect(regretLines).toContain('她敲了办公室的门。李老师收下了全部材料。');
+  });
+
+  it('C2-009 摘要按 duty 渲染，四条路径关键行完整', () => {
+    const duty2 = buildChapter2Summary({
+      v_zy_duty: 2,
+      v_zy_meme_stance: 0,
+      v_zy_ask_note: 1,
+      v_zy_ask_post: 1,
+    }).map((line) => line.text);
+    expect(duty2).toContain('名单上的名字，一个一个划掉。最后一个是她自己。');
+    expect(duty2).toContain('她问过。答案她没有接住。');
+
+    const duty1 = buildChapter2Summary({ v_zy_duty: 1 }).map((line) => line.text);
+    expect(duty1).toContain('那句「对不起」，还躺在输入框里。');
+
+    const dutyNeg = buildChapter2Summary({ v_zy_duty: -1 }).map((line) => line.text);
+    expect(dutyNeg).toContain('群里刷过一片『予安yyds』。');
   });
 });

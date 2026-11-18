@@ -72,6 +72,28 @@ export function advanceNode(run: RunState, index: StoryIndex): RunState {
   return enterNode(run, index, node.goto);
 }
 
+/** 担责清单提交：全选 duty=2，任一放弃 duty=1；至少选择一项。 */
+export function completeChecklist(
+  run: RunState,
+  index: StoryIndex,
+  selectedIds: string[],
+): RunState {
+  const node = getNode(index, run.currentNodeId);
+  if (node.kind !== 'checklist' || !node.checklist || !node.goto) {
+    throw new Error(`节点 ${node.id} 不是可提交的担责清单`);
+  }
+  const selected = new Set(selectedIds);
+  if (!node.checklist.items.some((item) => selected.has(item.id))) {
+    throw new Error(`担责清单至少选择一项（节点 ${node.id}）`);
+  }
+  const all = node.checklist.items.every((item) => selected.has(item.id));
+  const effects = all
+    ? (node.checklist.fullEffects ?? { v_zy_duty: 2 })
+    : (node.checklist.partialEffects ?? { v_zy_duty: 1 });
+  const flags = applyFlags(run.flags, { ...effects, v_did_self: 1 });
+  return enterNode({ ...run, flags }, index, node.goto);
+}
+
 export function chooseOption(run: RunState, index: StoryIndex, optionId: string): RunState {
   const node = getNode(index, run.currentNodeId);
   const option = node.options?.find((o) => o.id === optionId);

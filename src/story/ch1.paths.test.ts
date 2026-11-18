@@ -15,6 +15,7 @@ function runToChoice(run: RunState): RunState {
   for (let step = 0; step < 1000; step += 1) {
     const node = STORY_INDEX.nodes.get(current.currentNodeId);
     if (!node) throw new Error(`节点不存在：${current.currentNodeId}`);
+    if (node.kind === 'summary') return current;
     if (node.kind === 'chat') {
       const total = visibleChatMessages(current, node).length;
       if (current.chatPlayed < total) {
@@ -69,7 +70,7 @@ describe('第一章四条章级路径（STORY_SCRIPT §3）', () => {
       v_did_mom: 1,
       v_did_teacher: 1,
     });
-    expect(run.currentNodeId).toBe('C1-901');
+    expect(run.currentNodeId).toBe('C1-010');
   });
 
   it('路径二 沉默线 → v_xm_help=0，留群且不求助', () => {
@@ -93,7 +94,7 @@ describe('第一章四条章级路径（STORY_SCRIPT §3）', () => {
     });
     expect(run.flags.v_xm_ask_cy).toBeUndefined();
     expect(run.flags.v_did_teacher).toBeUndefined();
-    expect(run.currentNodeId).toBe('C1-901');
+    expect(run.currentNodeId).toBe('C1-010');
   });
 
   it('路径三 反悔线 → 12/7 转身交证据，v_xm_help=2', () => {
@@ -112,7 +113,7 @@ describe('第一章四条章级路径（STORY_SCRIPT §3）', () => {
       v_did_teacher: 1,
     });
     expect(run.flags.v_did_mom).toBeUndefined();
-    expect(run.currentNodeId).toBe('C1-901');
+    expect(run.currentNodeId).toBe('C1-010');
   });
 
   it('路径四 私信对质线 → v_xm_variant=2', () => {
@@ -132,7 +133,7 @@ describe('第一章四条章级路径（STORY_SCRIPT §3）', () => {
       v_xm_variant: 2,
       v_xm_help: 3,
     });
-    expect(run.currentNodeId).toBe('C1-901');
+    expect(run.currentNodeId).toBe('C1-010');
   });
 
   it('12/5–12/6 办公室路径 → 提前求助 v_xm_help=2 且仍收 EV-06', () => {
@@ -153,6 +154,6 @@ describe('第一章四条章级路径（STORY_SCRIPT §3）', () => {
     });
     expect(run.flags.v_did_mom).toBeUndefined();
     expect(run.clues).toContain('EV-06');
-    expect(run.currentNodeId).toBe('C1-901');
+    expect(run.currentNodeId).toBe('C1-010');
   });
 });

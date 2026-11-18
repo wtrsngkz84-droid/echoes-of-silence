@@ -29,7 +29,7 @@ export function TitleScreen() {
       </div>
       <div className="title-screen__foot">
         <span>
-          <span className="badge">第一章 · 正式剧本</span> 第 2/3 章制作中，C1-901 为演示网关
+          <span className="badge">第一、二章 · 正式剧本</span> 第三章制作中，C2-901 为临时演示网关
         </span>
         <span>同一周 · 三个视角 · 你的选择决定回声落点</span>
       </div>

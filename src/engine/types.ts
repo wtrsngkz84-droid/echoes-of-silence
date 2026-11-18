@@ -26,8 +26,12 @@ export type NodeKind =
   | 'dialogue'    // 角色台词
   | 'inner'       // 内心独白
   | 'chat'        // 手机聊天演出（群聊/私聊）
+  | 'call'        // 电话演出（C2-003）
+  | 'crop'        // 裁剪交互（C2-004 / GAMEPLAY_DESIGN §3.3）
+  | 'reasoning'   // 推理指认（GAMEPLAY_DESIGN §4.3）
+  | 'checklist'   // 担责清单（C2-008）
   | 'typing'      // 「打字又删掉」输入框演出（GAMEPLAY_DESIGN §2.3）
-  | 'summary'     // 章末小结屏（C1-010）
+  | 'summary'     // 章末小结屏（C1-010/C2-009）
   | 'clue'        // 线索获得演出
   | 'settlement'  // 章末结算（M1）
   | 'ending';     // 结局判定点：读取 flags 求值并展示结局卡
@@ -85,6 +89,57 @@ export interface NodeVariant {
   text: string;
 }
 
+export interface CallLine {
+  speaker?: string;
+  text: string;
+  time?: string;
+}
+
+/** 电话演出（C2-003）：来电人头 + 语音字幕 */
+export interface CallContent {
+  caller: string;
+  lines: CallLine[];
+}
+
+/** 裁剪交互（C2-004）：九条完整私聊 + 目标条 + 错误反馈 */
+export interface CropContent {
+  messages: ScreenshotRow[];
+  targetIndex: number;
+  wrongFeedback: Record<number, string>;
+  defaultCaption: string;
+  softGuideAfter?: number;
+}
+
+export interface ReasoningCandidate {
+  id: string;
+  text: string;
+  correct?: boolean;
+}
+
+/** 推理指认（C2-006 / GAMEPLAY_DESIGN §4.3） */
+export interface ReasoningContent {
+  prompt: string;
+  clues: string[];
+  candidates: ReasoningCandidate[];
+  wrongFeedback: string;
+}
+
+export interface ChecklistItem {
+  id: string;
+  label: string;
+}
+
+/** 担责清单（C2-008）：全选 duty=2，任一放弃 duty=1 */
+export interface ChecklistContent {
+  prompt: string;
+  items: ChecklistItem[];
+  clock?: string;
+  /** 全选时写入的状态（由数据层定义） */
+  fullEffects?: FlagPatch;
+  /** 部分选择时写入的状态（由数据层定义） */
+  partialEffects?: FlagPatch;
+}
+
 /** 「打字又删掉」演出参数（GAMEPLAY_DESIGN §2.3） */
 export interface TypingEffect {
   /** 草稿层长文：逐字浮现后逐字消隐 */
@@ -126,6 +181,8 @@ export interface StoryOption {
   effects?: FlagPatch;
   /** 选项旁的小字提示（如"需要先看懂截图"） */
   hint?: string;
+  /** 玩家向的代价标签（GD §3.5，第三章菜单用） */
+  price?: string;
 }
 
 export interface StoryNode {
@@ -154,6 +211,14 @@ export interface StoryNode {
   floodIntervalMs?: number;
   /** typing 节点：「打字又删掉」演出参数 */
   typing?: TypingEffect;
+  /** call 节点：电话内容 */
+  call?: CallContent;
+  /** crop 节点：裁剪交互内容 */
+  crop?: CropContent;
+  /** reasoning 节点：推理指认内容 */
+  reasoning?: ReasoningContent;
+  /** checklist 节点：担责清单内容 */
+  checklist?: ChecklistContent;
   options?: StoryOption[];
   /** 无选项时的无条件后继 */
   goto?: string;
@@ -219,6 +284,8 @@ export interface RunState {
   /** 本局收集的证据 id（EV-xx） */
   clues: string[];
   visitedNodes: string[];
+  /** 第三章「已删除的消息」存档；旧档缺失按空数组处理 */
+  deletedMessages?: string[];
 }
 
 /** 跨局持久化的进度图鉴（结局图鉴/证据图鉴/章节解锁，全局共享） */
