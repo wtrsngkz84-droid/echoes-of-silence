@@ -94,6 +94,31 @@ export function completeChecklist(
   return enterNode({ ...run, flags }, index, node.goto);
 }
 
+/** 输入框发送/删除：效果由节点数据定义；删除的文本写入 deletedMessages。 */
+export function resolveComposer(
+  run: RunState,
+  index: StoryIndex,
+  action: 'send' | 'delete',
+  text: string,
+): RunState {
+  const node = getNode(index, run.currentNodeId);
+  if (node.kind !== 'composer' || !node.composer || !node.goto) {
+    throw new Error(`节点 ${node.id} 不是可提交的输入框`);
+  }
+  const effects =
+    action === 'send' ? node.composer.sendEffects : node.composer.deleteEffects;
+  const flags = applyFlags(run.flags, effects);
+  const deletedMessages =
+    action === 'delete'
+      ? [...(run.deletedMessages ?? []), text]
+      : run.deletedMessages;
+  return enterNode(
+    { ...run, flags, deletedMessages },
+    index,
+    node.goto,
+  );
+}
+
 export function chooseOption(run: RunState, index: StoryIndex, optionId: string): RunState {
   const node = getNode(index, run.currentNodeId);
   const option = node.options?.find((o) => o.id === optionId);

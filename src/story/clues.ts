@@ -21,6 +21,30 @@ export const CLUES: Record<string, ClueDef> = {
     factRef: 'EV-02',
     chapters: ['ch1', 'ch2', 'ch3'],
   },
+  'EV-04': {
+    id: 'EV-04',
+    name: '老街走访照片',
+    description:
+      '陈屿相机里的老街、时间水印和小满走访记录的那天。照片能证明的事，比说出来的多。',
+    factRef: 'EV-04',
+    chapters: ['ch1', 'ch3'],
+  },
+  'EV-05': {
+    id: 'EV-05',
+    name: '办公室谈话',
+    description:
+      '11/26 放学后，小满请李老师附一页分工说明，并把「PPT 和汇报是予安独立完成的」写进材料。陈屿在门外听到了全部。',
+    factRef: 'EV-05',
+    chapters: ['ch1', 'ch3'],
+  },
+  'EV-08': {
+    id: 'EV-08',
+    name: '女生小群预告截图',
+    description:
+      '12/1 晚，郑晓芸在女生小群说「明天给她来个『成果公示』怎么样」。12/2 纸条真的出现。',
+    factRef: 'EV-08',
+    chapters: ['ch3'],
+  },
   'EV-06': {
     id: 'EV-06',
     name: '公示的分工说明页',

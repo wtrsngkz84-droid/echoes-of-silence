@@ -27,6 +27,7 @@ export type NodeKind =
   | 'inner'       // 内心独白
   | 'chat'        // 手机聊天演出（群聊/私聊）
   | 'call'        // 电话演出（C2-003）
+  | 'composer'    // 输入框发送/删除（C3-002 / GAMEPLAY_DESIGN §3.4）
   | 'crop'        // 裁剪交互（C2-004 / GAMEPLAY_DESIGN §3.3）
   | 'reasoning'   // 推理指认（GAMEPLAY_DESIGN §4.3）
   | 'checklist'   // 担责清单（C2-008）
@@ -99,6 +100,13 @@ export interface CallLine {
 export interface CallContent {
   caller: string;
   lines: CallLine[];
+}
+
+/** 输入框发送/删除（C3-002） */
+export interface ComposerContent {
+  candidates: string[];
+  sendEffects?: FlagPatch;
+  deleteEffects?: FlagPatch;
 }
 
 /** 裁剪交互（C2-004）：九条完整私聊 + 目标条 + 错误反馈 */
@@ -213,6 +221,8 @@ export interface StoryNode {
   typing?: TypingEffect;
   /** call 节点：电话内容 */
   call?: CallContent;
+  /** composer 节点：输入框候选句与发送/删除效果 */
+  composer?: ComposerContent;
   /** crop 节点：裁剪交互内容 */
   crop?: CropContent;
   /** reasoning 节点：推理指认内容 */

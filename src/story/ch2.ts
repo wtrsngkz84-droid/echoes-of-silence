@@ -1182,57 +1182,6 @@ export const CH2_NODES: StoryNode[] = [
     tone: 'cold',
     beat: '回声小结',
     title: '12/13 · 周日 · 晚',
-    goto: 'C2-901',
-  },
-
-  // ══════════ 临时演示网关（第三章接入前替换） ══════════
-  {
-    id: 'C2-901',
-    chapter: 'ch2',
-    kind: 'narration',
-    scene: 'classroom',
-    tone: 'neutral',
-    beat: '临时演示网关',
-    title: '演示 · 结局判定网关（第三章接入前临时）',
-    text: '第二章到此为止。第三章（陈屿）接入前，这里临时开放结局判定矩阵演示：补上第三条线的关键走向，看看回声最终落在哪张结局卡上。',
-    options: [
-      {
-        id: 'C2-901-O1',
-        text: '演示：陈屿交出证据',
-        hint: '第 3 章走向',
-        requires: { none: ['v_did_act'] },
-        effects: { v_cy_act: 2, v_did_act: 1 },
-        goto: 'C2-901',
-      },
-      {
-        id: 'C2-901-O2',
-        text: '演示：陈屿群内公开发声',
-        hint: '第 3 章走向',
-        requires: { none: ['v_did_act'] },
-        effects: { v_cy_act: 3, v_did_act: 1 },
-        goto: 'C2-901',
-      },
-      {
-        id: 'C2-901-O3',
-        text: '演示：陈屿曾转发表情包',
-        hint: '第 3 章走向',
-        requires: { none: ['v_did_echo'] },
-        effects: { v_cy_echo: 1, v_did_echo: 1 },
-        goto: 'C2-901',
-      },
-      {
-        id: 'C2-901-O4',
-        text: '进入结局结算',
-        hint: '按结局判定矩阵求值',
-        goto: 'CE-901',
-      },
-    ],
-  },
-  {
-    id: 'CE-901',
-    chapter: 'ch2',
-    kind: 'ending',
-    beat: '临时演示网关',
-    endingNote: '结局 id 由引擎按 GAMEPLAY_DESIGN §7.1 判定矩阵求值（E5→E4→E3→E1→E2，E2 兜底）',
+    goto: 'C3-001',
   },
 ];

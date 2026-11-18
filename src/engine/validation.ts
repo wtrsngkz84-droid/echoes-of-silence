@@ -91,6 +91,10 @@ export function validateStory(
       if (typeof node.typing?.final !== 'string') {
         issues.push({ level: 'error', nodeId: where, message: 'typing 节点缺少 typing.final' });
       }
+    } else if (node.kind === 'composer') {
+      if (!node.composer || node.composer.candidates.length === 0) {
+        issues.push({ level: 'error', nodeId: where, message: 'composer 节点缺少候选句' });
+      }
     } else if (node.kind === 'call') {
       if (!node.call || node.call.lines.length === 0) {
         issues.push({ level: 'error', nodeId: where, message: 'call 节点缺少 call.lines' });

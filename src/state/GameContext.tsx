@@ -6,6 +6,7 @@ import {
   chooseOption,
   completeChecklist,
   playNextChatMessage,
+  resolveComposer,
   startChapter,
   visibleChatMessages,
 } from '../engine/engine';
@@ -41,6 +42,7 @@ type SessionAction =
   | { type: 'CHOOSE'; optionId: string }
   | { type: 'CHAT_NEXT' }
   | { type: 'CHECKLIST_SUBMIT'; selectedIds: string[] }
+  | { type: 'COMPOSER_RESOLVE'; action: 'send' | 'delete'; text: string }
   | { type: 'DELETE_MESSAGE'; text: string }
   | { type: 'SET_SCREEN'; screen: ScreenId }
   | { type: 'OPEN_MENU' }
@@ -169,6 +171,15 @@ function reducer(state: SessionState, action: SessionAction): SessionState {
       );
       return persist({ ...state, ...settled }, state.run);
     }
+    case 'COMPOSER_RESOLVE': {
+      if (!state.run) return state;
+      const settled = settleRun(
+        state,
+        state.run,
+        resolveComposer(state.run, STORY_INDEX, action.action, action.text),
+      );
+      return persist({ ...state, ...settled }, state.run);
+    }
     case 'DELETE_MESSAGE': {
       if (!state.run) return state;
       const nextRun: RunState = {
@@ -205,6 +216,7 @@ interface GameContextValue {
   choose: (optionId: string) => void;
   chatNext: () => void;
   submitChecklist: (selectedIds: string[]) => void;
+  resolveComposer: (action: 'send' | 'delete', text: string) => void;
   recordDeletedMessage: (text: string) => void;
   setScreen: (screen: ScreenId) => void;
   openMenu: () => void;
@@ -232,6 +244,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       choose: (optionId) => dispatch({ type: 'CHOOSE', optionId }),
       chatNext: () => dispatch({ type: 'CHAT_NEXT' }),
       submitChecklist: (selectedIds) => dispatch({ type: 'CHECKLIST_SUBMIT', selectedIds }),
+      resolveComposer: (action, text) =>
+        dispatch({ type: 'COMPOSER_RESOLVE', action, text }),
       recordDeletedMessage: (text) => dispatch({ type: 'DELETE_MESSAGE', text }),
       setScreen: (screen) => dispatch({ type: 'SET_SCREEN', screen }),
       openMenu: () => dispatch({ type: 'OPEN_MENU' }),

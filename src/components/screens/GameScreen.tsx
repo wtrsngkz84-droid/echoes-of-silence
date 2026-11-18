@@ -19,6 +19,7 @@ import { ScreenshotViewer } from '../chat/ScreenshotViewer';
 import { ChoiceList } from '../dialogue/ChoiceList';
 import { DialogueBox } from '../dialogue/DialogueBox';
 import { DutyChecklist } from '../dialogue/DutyChecklist';
+import { MessageComposer } from '../chat/MessageComposer';
 import { ReasoningPanel } from '../dialogue/ReasoningPanel';
 import { TypingDelete } from '../dialogue/TypingDelete';
 import { ChapterSummary } from './ChapterSummary';
@@ -94,7 +95,12 @@ export function GameScreen() {
       }
       return;
     }
-    if (node.kind === 'crop' || node.kind === 'reasoning' || node.kind === 'checklist') {
+    if (
+      node.kind === 'crop' ||
+      node.kind === 'reasoning' ||
+      node.kind === 'checklist' ||
+      node.kind === 'composer'
+    ) {
       return;
     }
     if (!typer.done) {
@@ -188,6 +194,12 @@ export function GameScreen() {
           node={node}
           onChatNext={game.chatNext}
           onOpenScreenshot={setViewerContent}
+        />
+      ) : node.kind === 'composer' && node.composer ? (
+        <MessageComposer
+          candidates={node.composer.candidates}
+          onSend={(text) => game.resolveComposer('send', text)}
+          onDelete={(text) => game.resolveComposer('delete', text)}
         />
       ) : node.kind === 'call' && node.call ? (
         <PhoneCall call={node.call} />

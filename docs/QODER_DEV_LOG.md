@@ -3,6 +3,31 @@
 > 本文件记录真实工作状态，供两位成员的 Qoder 在新会话恢复上下文。  
 > 记录“已经做了什么、验证了什么、还差什么”；计划不等于完成，未运行不等于通过。
 
+## 2026-11-18 — M2：第三章接入 C3-001～C3-009（开发负责人）
+
+- 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。
+- 起始分支与基线提交：main @ `663f027`（M2 第二章/组件已推送；远端 `93640b0` 已含 C3 剧本 V0.3）。
+- 任务目标与关联需求：按 STORY_SCRIPT §13 接入第三章；复用/接线输入框、速写本、价格标签；C2 → C3 章节链；C3-008 正式结局卡。
+- 变更文件及原因：
+  - `src/story/ch3.ts`（新增）：C3-001～C3-009；值日旁听、群聊输入框、沉默记账、教室独处（三档开场 + CP1 四档 + CP2 兑现）、公示后窗口（EV-08 + 推理 + 告诉与否）、四档行动窗口（标价）、班会条件渲染、C3-008 结局判定。
+  - `src/story/index.ts`：注册 CH3_NODES 与 ch3 起始节点。
+  - `src/engine/types.ts`：新增 `composer` 节点与 `ComposerContent`。
+  - `src/engine/engine.ts`：新增 `resolveComposer`（发送/删除，删除文本入 `deletedMessages`）；`validation.ts` 覆盖 composer。
+  - `src/state/GameContext.tsx`：新增 COMPOSER_RESOLVE。
+  - `src/components/screens/GameScreen.tsx`：显示 MessageComposer；composer 节点由组件推进。
+  - `src/components/menu/GameMenu.tsx`：速写本按 ch3 visitedNodes 解锁 11/26→12/14 页。
+  - `src/story/clues.ts`：新增 EV-04/EV-05/EV-08。
+  - `src/story/ch2.ts`：C2-009 → C3-001；移除 C2-901/CE-901。
+  - 测试：新增 `ch3.paths.test.ts`（沉默/跟风/私援/公开/兑现五条 + 删除存档）；全量 84 项。
+  - 文档：TECHNICAL.md v0.6、README.md、本日志。
+- 已完成：三章剧情节点的首版接入；输入框、速写本、价格标签全部接线；C3-008 使用正式结局卡；C1/C2/C3 全链贯通。
+- 验证方法、命令或游玩步骤：`npx tsc --noEmit`；`npx vitest run`；`npm run build`；浏览器注入 C3-021 验证输入框候选/删除存档；注入 C3-006 验证四档价格与公开发声；注入 C3-007 验证班会条件行（小满在场、予安担责、陈屿公开发声、李老师三句、兑现行）；C3-006 公开发声走到正式结局卡。
+- 实际结果：通过。tsc 通过；84/84 测试；build 成功（gzip JS 111.43 KB、CSS 6.02 KB）；浏览器控制台零报错。
+- 未解决问题、风险与依赖：C3-009 的结局画廊/章节回顾/重玩入口、章节解锁链（FR-09）仍属 M2 P2；C3-002 composer 已接入 `deletedMessages`，速写本页按 visitedNodes 近似解锁；C3 剧本 V0.3 待产品负责人审阅。
+- 新决策编号或待确认提案：无新增；未改产品文档。
+- 下一步及接手角色：产品负责人审阅 V0.3 → T-P3-4 章间一致性终检；开发补 M2 P2（画廊/回顾/章节解锁），并评估 FR-13 三分钟路径。
+- 提交 / PR 链接：本条与上述代码作为单条提交推送 main；哈希以仓库历史为准。
+
 ## 2026-11-17 — P3 第三章剧本初稿（产品经理 / 剧情策划）
 
 - 执行角色 / 负责人：产品经理 / 剧情策划（本人 Qoder）。
