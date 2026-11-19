@@ -3,6 +3,29 @@
 > 本文件记录真实工作状态，供两位成员的 Qoder 在新会话恢复上下文。  
 > 记录“已经做了什么、验证了什么、还差什么”；计划不等于完成，未运行不等于通过。
 
+## 2026-11-18 — T-P3-4 首轮 5 项修复（开发负责人）
+
+- 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。
+- 起始分支与基线提交：main @ `469e9fd`（T-P3-4 首轮审阅）。
+- 任务目标与关联需求：修复 C3-046/C3-054 玩家可见实现注记、`v_did_ident` 写入时机、班会双重追责缺失、C3-007 散会行分叉。
+- 变更文件及原因：
+  - `src/engine/types.ts`：`ReasoningContent` 增加 `conditionalClues`（条件线索）与 `solvedEffects`（正确时写入）。
+  - `src/engine/engine.ts`：新增 `visibleReasoningClues`（条件线索过滤）与 `solveReasoning`（只在对时写 effects 并进入后继）。
+  - `src/state/GameContext.tsx`：新增 REASONING_SOLVED，接线 `solveReasoning`。
+  - `src/components/dialogue/ReasoningPanel.tsx`：线索由外部传入（已按 run 过滤），正确时调用 solveReasoning。
+  - `src/components/screens/GameScreen.tsx`：传入 `visibleReasoningClues` 与 `game.solveReasoning`。
+  - `src/story/ch2.ts`：C2-066 推理增加 `solvedEffects: { v_did_ident: 1 }`。
+  - `src/story/ch3.ts`：C3-054 移除进入即写的 `effects`，线索 b 改为 `conditionalClues`（requires clues EV-08）并删除注记；C3-046 拆 variants（ask=1 问句 / ask=0「那……明天见。」）；C3-007 增加 `v_did_ident=1` 双重追责行，散会行按 `v_xm_help` 分叉。
+  - 测试：engine 推理条件线索/求解写入；story 测试 C3-046 两种文本、C3-007 双重追责与散会行；路径测试改为 `solveReasoning`。
+  - 文档：TECHNICAL.md v0.7.1、README.md、本日志。
+- 已完成：5 项全部修复；C2/C3 推理均只在指认正确时写 `v_did_ident`。
+- 验证方法、命令或游玩步骤：`npx tsc --noEmit`；`npx vitest run`；`npm run build`；浏览器注入 C3-046（ask=0/1）、C3-054（无/有 EV-08，错选/正确）、C3-007（help 0/2）分别复查。
+- 实际结果：通过。tsc 通过；91/91 测试；build 成功（gzip JS 112.83 KB、CSS 6.25 KB）。浏览器：C3-046 ask=0 仅「那……明天见。」且无注记/选项，ask=1 显示问句与两个选项；C3-054 无线索 b、有 EV-08 显示三条，错选不写 `v_did_ident`、正确写入并进入 C3-055；C3-007 `v_did_ident=1` 出现双重追责句，help=0/2 分别显示空椅子/坐着人的散会行。控制台零报错。
+- 未解决问题、风险与依赖：T-P3-4 二次走查待产品侧执行；C3-009 尾声节点按备案由 EndingScreen/标题页承担；FR-13、群聊发言深度、美术资源仍待。
+- 新决策编号或待确认提案：无新增；未改产品文档。
+- 下一步及接手角色：产品侧二次走查 T-P3-4；开发进入 FR-13 三分钟路径或资源接入。
+- 提交 / PR 链接：本条与上述代码作为单条提交推送 main；哈希以仓库历史为准。
+
 ## 2026-11-18 — M2 P2：章节解锁链 / 结局画廊 / 章节回顾（开发负责人）
 
 - 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。

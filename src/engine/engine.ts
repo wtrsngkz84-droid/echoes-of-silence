@@ -2,6 +2,7 @@ import { applyFlags, testCondition } from './conditions';
 import type {
   ChapterId,
   ChatMessage,
+  Condition,
   RunState,
   StoryIndex,
   StoryNode,
@@ -70,6 +71,27 @@ export function advanceNode(run: RunState, index: StoryIndex): RunState {
   const node = getNode(index, run.currentNodeId);
   if (!node.goto) throw new Error(`节点 ${node.id} 无 goto，无法推进`);
   return enterNode(run, index, node.goto);
+}
+
+/** 推理面板当前可见线索（含条件线索）。 */
+export function visibleReasoningClues(
+  run: RunState,
+  content: { clues: string[]; conditionalClues?: { text: string; requires?: Condition }[] },
+): string[] {
+  const conditional = (content.conditionalClues ?? [])
+    .filter((clue) => testCondition(run, clue.requires))
+    .map((clue) => clue.text);
+  return [...content.clues, ...conditional];
+}
+
+/** 推理指认正确：写入 solvedEffects 并进入后继节点。 */
+export function solveReasoning(run: RunState, index: StoryIndex): RunState {
+  const node = getNode(index, run.currentNodeId);
+  if (node.kind !== 'reasoning' || !node.reasoning || !node.goto) {
+    throw new Error(`节点 ${node.id} 不是可结算的推理节点`);
+  }
+  const flags = applyFlags(run.flags, node.reasoning.solvedEffects);
+  return enterNode({ ...run, flags }, index, node.goto);
 }
 
 /** 担责清单提交：全选 duty=2，任一放弃 duty=1；至少选择一项。 */

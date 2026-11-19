@@ -7,6 +7,7 @@ import {
   completeChecklist,
   playNextChatMessage,
   resolveComposer,
+  solveReasoning,
   startChapter,
   visibleChatMessages,
 } from '../engine/engine';
@@ -44,6 +45,7 @@ type SessionAction =
   | { type: 'CHAT_NEXT' }
   | { type: 'CHECKLIST_SUBMIT'; selectedIds: string[] }
   | { type: 'COMPOSER_RESOLVE'; action: 'send' | 'delete'; text: string }
+  | { type: 'REASONING_SOLVED' }
   | { type: 'DELETE_MESSAGE'; text: string }
   | { type: 'SET_SCREEN'; screen: ScreenId }
   | { type: 'OPEN_MENU' }
@@ -193,6 +195,11 @@ function reducer(state: SessionState, action: SessionAction): SessionState {
       );
       return persist({ ...state, ...settled }, state.run);
     }
+    case 'REASONING_SOLVED': {
+      if (!state.run) return state;
+      const settled = settleRun(state, state.run, solveReasoning(state.run, STORY_INDEX));
+      return persist({ ...state, ...settled }, state.run);
+    }
     case 'DELETE_MESSAGE': {
       if (!state.run) return state;
       const nextRun: RunState = {
@@ -230,6 +237,7 @@ interface GameContextValue {
   chatNext: () => void;
   submitChecklist: (selectedIds: string[]) => void;
   resolveComposer: (action: 'send' | 'delete', text: string) => void;
+  solveReasoning: () => void;
   recordDeletedMessage: (text: string) => void;
   setScreen: (screen: ScreenId) => void;
   openMenu: () => void;
@@ -260,6 +268,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       submitChecklist: (selectedIds) => dispatch({ type: 'CHECKLIST_SUBMIT', selectedIds }),
       resolveComposer: (action, text) =>
         dispatch({ type: 'COMPOSER_RESOLVE', action, text }),
+      solveReasoning: () => dispatch({ type: 'REASONING_SOLVED' }),
       recordDeletedMessage: (text) => dispatch({ type: 'DELETE_MESSAGE', text }),
       setScreen: (screen) => dispatch({ type: 'SET_SCREEN', screen }),
       openMenu: () => dispatch({ type: 'OPEN_MENU' }),

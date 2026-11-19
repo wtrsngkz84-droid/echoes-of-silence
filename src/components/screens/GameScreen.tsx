@@ -5,6 +5,7 @@ import {
   visibleChatMessages,
   visibleNodeText,
   visibleOptions,
+  visibleReasoningClues,
 } from '../../engine/engine';
 import type { ChapterId, ScreenshotContent } from '../../engine/types';
 import { useGameKeyboard } from '../../hooks/useKeyboard';
@@ -206,7 +207,11 @@ export function GameScreen() {
       ) : node.kind === 'crop' && node.crop ? (
         <CropNight content={node.crop} onComplete={game.advance} />
       ) : node.kind === 'reasoning' && node.reasoning ? (
-        <ReasoningPanel content={node.reasoning} onSolved={game.advance} />
+        <ReasoningPanel
+          content={node.reasoning}
+          clues={visibleReasoningClues(run, node.reasoning)}
+          onSolved={game.solveReasoning}
+        />
       ) : node.kind === 'checklist' && node.checklist ? (
         <DutyChecklist content={node.checklist} onSubmit={game.submitChecklist} />
       ) : node.kind === 'typing' && node.typing ? (

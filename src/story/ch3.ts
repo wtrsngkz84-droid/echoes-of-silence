@@ -481,7 +481,13 @@ export const CH3_NODES: StoryNode[] = [
     scene: 'classroom-afternoon',
     tone: 'cold',
     beat: '教室独处 12/4',
-    text: '（若第一章她请求过作证）班会那天……你愿意帮我作证吗？',
+    text: '那……明天见。',
+    variants: [
+      {
+        requires: { all: ['v_xm_ask_cy=1'] },
+        text: '班会那天……你愿意帮我作证吗？',
+      },
+    ],
     options: [
       {
         id: 'C3-046-O1',
@@ -573,8 +579,13 @@ export const CH3_NODES: StoryNode[] = [
         '树洞帖「投稿：初二 3 班有人抢组员成果还会装可怜，截图为证，大家认清楚。抱着老师大腿的转学生罢了。」是谁发的？',
       clues: [
         '用语重合：帖里的「抱着老师大腿」与 11/27 群里晓芸的原话一字不差（你当晚亲眼所见）。',
-        '（若取得 EV-08）行为模式：12/1 预告「成果公示」→ 12/2 纸条真的出现——说得出、做得到的人，不会是第一次。',
         '投稿时序：「截图为证」的图只在班群传过一轮（11/27 夜）——发帖的人，是当晚就在群里的人。',
+      ],
+      conditionalClues: [
+        {
+          text: '行为模式：12/1 预告「成果公示」→ 12/2 纸条真的出现——说得出、做得到的人，不会是第一次。',
+          requires: { clues: ['EV-08'] },
+        },
       ],
       candidates: [
         { id: 'zheng', text: '郑晓芸', correct: true },
@@ -583,8 +594,8 @@ export const CH3_NODES: StoryNode[] = [
         { id: 'unknown', text: '想不出来' },
       ],
       wrongFeedback: '你怀疑错了。线索还在。',
+      solvedEffects: { v_did_ident: 1 },
     },
-    effects: { v_did_ident: 1 },
     goto: 'C3-055',
   },
   {
@@ -807,6 +818,12 @@ export const CH3_NODES: StoryNode[] = [
         requires: { all: ['v_cy_act>=2'] },
       },
       {
+        id: 'C3-007-m5c',
+        side: 'system',
+        text: '（晓芸：「那条树洞帖的用词，和你的话一模一样。」）',
+        requires: { all: ['v_did_ident=1'] },
+      },
+      {
         id: 'C3-007-told',
         side: 'system',
         text: '（内心）公示那天我说过的话。……今天该说第二句了。',
@@ -819,9 +836,16 @@ export const CH3_NODES: StoryNode[] = [
         requires: { all: ['v_did_pledge'] },
       },
       {
-        id: 'C3-007-end',
+        id: 'C3-007-end-empty',
         side: 'system',
-        text: '散会。桌椅腿拖过地面的声音。空椅子（或坐着人的椅子）停在阳光里。',
+        text: '散会。桌椅腿拖过地面的声音。空椅子停在阳光里。',
+        requires: { all: ['v_xm_help=0'] },
+      },
+      {
+        id: 'C3-007-end-filled',
+        side: 'system',
+        text: '散会。桌椅腿拖过地面的声音。椅子停在阳光里，坐着人。',
+        requires: { all: ['v_xm_help>=1'] },
       },
     ],
     goto: 'C3-008',

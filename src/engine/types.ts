@@ -124,12 +124,22 @@ export interface ReasoningCandidate {
   correct?: boolean;
 }
 
+export interface ReasoningClue {
+  text: string;
+  /** 满足条件时才显示（如持有 EV-08） */
+  requires?: Condition;
+}
+
 /** 推理指认（C2-006 / GAMEPLAY_DESIGN §4.3） */
 export interface ReasoningContent {
   prompt: string;
   clues: string[];
+  /** 条件线索：不满足 requires 时不渲染 */
+  conditionalClues?: ReasoningClue[];
   candidates: ReasoningCandidate[];
   wrongFeedback: string;
+  /** 指认正确时写入的状态（错误/放弃不写） */
+  solvedEffects?: FlagPatch;
 }
 
 export interface ChecklistItem {

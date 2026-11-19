@@ -6,10 +6,12 @@ import {
   buildStoryIndex,
   chooseOption,
   enterNode,
+  solveReasoning,
   startChapter,
   visibleChatMessages,
   visibleNodeText,
   visibleOptions,
+  visibleReasoningClues,
 } from './engine';
 import type { EndingId, RunState, StoryNode } from './types';
 
@@ -295,6 +297,40 @@ describe('engine 节点推进', () => {
     expect(
       visibleChatMessages(runOf({ flags: { path: 'a' } }), chatNode),
     ).toHaveLength(2);
+  });
+
+  it('visibleReasoningClues 过滤条件线索；solveReasoning 仅正确时写 solvedEffects', () => {
+    const reasoningNode: StoryNode = {
+      id: 'C1-001',
+      chapter: 'ch1',
+      kind: 'reasoning',
+      reasoning: {
+        prompt: '谁？',
+        clues: ['基础线索'],
+        conditionalClues: [
+          { text: '条件线索', requires: { clues: ['EV-08'] } },
+        ],
+        candidates: [{ id: 'a', text: '甲', correct: true }],
+        wrongFeedback: '错',
+        solvedEffects: { v_did_ident: 1 },
+      },
+      goto: 'C1-002',
+    };
+    const index = buildStoryIndex(
+      [reasoningNode, { id: 'C1-002', chapter: 'ch1', kind: 'ending' }],
+      { ch1: 'C1-001' },
+    );
+
+    expect(visibleReasoningClues(runOf(), reasoningNode.reasoning!)).toEqual([
+      '基础线索',
+    ]);
+    expect(
+      visibleReasoningClues(runOf({ clues: ['EV-08'] }), reasoningNode.reasoning!),
+    ).toEqual(['基础线索', '条件线索']);
+
+    const solved = solveReasoning(runOf({ currentNodeId: 'C1-001' }), index);
+    expect(solved.flags.v_did_ident).toBe(1);
+    expect(solved.currentNodeId).toBe('C1-002');
   });
 
   it('visibleNodeText 使用首个满足条件的文本变体', () => {

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { STORY_INDEX, storyIssues } from './index';
 import { buildChapterSummary } from './ch1Summary';
 import { buildChapter2Summary } from './ch2Summary';
+import { visibleChatMessages, visibleNodeText } from '../engine/engine';
+import type { RunState } from '../engine/types';
 import { CLUES } from './clues';
 import { ENDINGS } from './endings';
 import { CHARACTERS } from './characters';
@@ -207,6 +209,55 @@ describe('剧情数据完整性', () => {
     expect(node?.crop?.defaultCaption).toContain(
       '还有 她周四放学专门去办公室找了李老师。说了什么 大家自己想。',
     );
+  });
+
+  it('C3-046 按 v_xm_ask_cy 显示问句或替代表演，不泄露实现注记', () => {
+    const node = STORY_INDEX.nodes.get('C3-046');
+    expect(node?.text).toBe('那……明天见。');
+    expect(node?.variants?.[0].text).toBe('班会那天……你愿意帮我作证吗？');
+    expect(JSON.stringify(node)).not.toContain('若第一章');
+    for (const option of node?.options ?? []) {
+      expect(option.requires).toEqual({ all: ['v_xm_ask_cy=1'] });
+    }
+
+    const base: RunState = {
+      runId: 't',
+      chapter: 'ch3',
+      currentNodeId: 'C3-046',
+      flags: {},
+      chatPlayed: 0,
+      clues: [],
+      visitedNodes: [],
+    };
+    expect(visibleNodeText(base, node!)).toBe('那……明天见。');
+    expect(visibleNodeText({ ...base, flags: { v_xm_ask_cy: 1 } }, node!)).toBe(
+      '班会那天……你愿意帮我作证吗？',
+    );
+  });
+
+  it('C3-007 按 v_did_ident 追加双重追责，按 v_xm_help 分叉散会行', () => {
+    const node = STORY_INDEX.nodes.get('C3-007')!;
+    const textsFor = (flags: Record<string, number>) => {
+      const run: RunState = {
+        runId: 't',
+        chapter: 'ch3',
+        currentNodeId: 'C3-007',
+        flags,
+        chatPlayed: 0,
+        clues: [],
+        visitedNodes: [],
+      };
+      return visibleChatMessages(run, node).map((msg) => msg.text).join('\n');
+    };
+
+    expect(textsFor({ v_did_ident: 1, v_xm_help: 0 })).toContain(
+      '那条树洞帖的用词，和你的话一模一样',
+    );
+    expect(textsFor({ v_did_ident: 0, v_xm_help: 2 })).not.toContain(
+      '那条树洞帖的用词，和你的话一模一样',
+    );
+    expect(textsFor({ v_xm_help: 0 })).toContain('空椅子停在阳光里。');
+    expect(textsFor({ v_xm_help: 2 })).toContain('椅子停在阳光里，坐着人。');
   });
 
   it('C2-009 日期为剧本修订后的 12/13 周日晚', () => {

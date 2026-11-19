@@ -4,6 +4,7 @@ import {
   chooseOption,
   playNextChatMessage,
   resolveComposer,
+  solveReasoning,
   startChapter,
   visibleChatMessages,
   visibleOptions,
@@ -23,6 +24,10 @@ function runToChoice(run: RunState): RunState {
       node.kind === 'ending'
     ) {
       return current;
+    }
+    if (node.kind === 'reasoning') {
+      current = solveReasoning(current, STORY_INDEX);
+      continue;
     }
     if (node.kind === 'chat') {
       const total = visibleChatMessages(current, node).length;

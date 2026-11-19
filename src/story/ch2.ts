@@ -687,6 +687,7 @@ export const CH2_NODES: StoryNode[] = [
         { id: 'unknown', text: '想不出来' },
       ],
       wrongFeedback: '你怀疑错了。线索还在。',
+      solvedEffects: { v_did_ident: 1 },
     },
     goto: 'C2-067',
   },

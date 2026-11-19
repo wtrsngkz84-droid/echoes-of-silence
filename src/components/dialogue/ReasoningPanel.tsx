@@ -7,11 +7,12 @@ import {
 
 interface ReasoningPanelProps {
   content: ReasoningContent;
+  clues: string[];
   onSolved: () => void;
 }
 
 /** 推理指认（GAMEPLAY_DESIGN §4.3）：线索陈列 + 四候选；错误不惩罚、可重试。 */
-export function ReasoningPanel({ content, onSolved }: ReasoningPanelProps) {
+export function ReasoningPanel({ content, clues, onSolved }: ReasoningPanelProps) {
   const [state, setState] = useState(createReasoningState);
 
   return (
@@ -20,7 +21,7 @@ export function ReasoningPanel({ content, onSolved }: ReasoningPanelProps) {
         <div className="reasoning-panel__kicker">推理指认 · 轻推理，不计分</div>
         <h2 className="reasoning-panel__prompt">{content.prompt}</h2>
         <ul className="reasoning-panel__clues">
-          {content.clues.map((clue) => (
+          {clues.map((clue) => (
             <li key={clue}>{clue}</li>
           ))}
         </ul>

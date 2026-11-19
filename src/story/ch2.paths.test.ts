@@ -4,6 +4,7 @@ import {
   chooseOption,
   completeChecklist,
   playNextChatMessage,
+  solveReasoning,
   startChapter,
   visibleChatMessages,
   visibleOptions,
@@ -17,6 +18,10 @@ function runToChoice(run: RunState): RunState {
     const node = STORY_INDEX.nodes.get(current.currentNodeId);
     if (!node) throw new Error(`节点不存在：${current.currentNodeId}`);
     if (node.kind === 'summary' || node.kind === 'checklist') return current;
+    if (node.kind === 'reasoning') {
+      current = solveReasoning(current, STORY_INDEX);
+      continue;
+    }
     if (node.kind === 'chat') {
       const total = visibleChatMessages(current, node).length;
       if (current.chatPlayed < total) {
