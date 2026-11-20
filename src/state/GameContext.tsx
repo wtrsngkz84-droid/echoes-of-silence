@@ -11,7 +11,7 @@ import {
   startChapter,
   visibleChatMessages,
 } from '../engine/engine';
-import { evaluateEnding } from '../engine/endings';
+import { evaluateEnding, evaluateEndingWithPrefix } from '../engine/endings';
 import type {
   ChapterId,
   ClueDef,
@@ -22,7 +22,16 @@ import type {
 } from '../engine/types';
 import { CLUES } from '../story/clues';
 import { STORY_INDEX } from '../story/index';
-import { clearRun, hasRun, loadMeta, loadRun, saveMeta, saveRun } from './save';
+import {
+  clearRun,
+  clearThreeMinRun,
+  hasRun,
+  loadMeta,
+  loadRun,
+  saveMeta,
+  saveRun,
+  saveThreeMinRun,
+} from './save';
 import { carryableFlags, mergeCompleted, mergeUnlocked } from './progress';
 
 interface SessionState {
@@ -35,10 +44,13 @@ interface SessionState {
   endingId: EndingId | null;
   meta: ProgressMeta;
   hasSave: boolean;
+  /** 内容提示后进入的入口（ch1 完整版 / 3min） */
+  pendingChapter: ChapterId;
 }
 
 type SessionAction =
   | { type: 'START_RUN'; chapter: ChapterId; carriedFlags?: RunState['flags'] }
+  | { type: 'OPEN_WARNING'; chapter: ChapterId }
   | { type: 'CONTINUE_RUN'; run: RunState }
   | { type: 'ADVANCE' }
   | { type: 'CHOOSE'; optionId: string }
@@ -64,6 +76,7 @@ const initialState: SessionState = {
   endingId: null,
   meta: loadMeta(),
   hasSave: hasRun(),
+  pendingChapter: 'ch1',
 };
 
 interface RunTransition {
@@ -91,7 +104,7 @@ function settleRun(prev: SessionState, prevRun: RunState | null, nextRun: RunSta
 
   let screen = prev.screen;
   let endingId = prev.endingId;
-  if (node?.kind === 'summary' || node?.kind === 'ending') {
+  if (nextRun.chapter !== '3min' && (node?.kind === 'summary' || node?.kind === 'ending')) {
     meta = {
       ...meta,
       unlockedChapters: mergeUnlocked(meta.unlockedChapters, node.chapter),
@@ -100,11 +113,16 @@ function settleRun(prev: SessionState, prevRun: RunState | null, nextRun: RunSta
     };
   }
   if (node?.kind === 'ending') {
-    endingId = evaluateEnding(nextRun.flags);
+    endingId =
+      nextRun.chapter === '3min'
+        ? evaluateEndingWithPrefix(nextRun.flags, '3min_')
+        : evaluateEnding(nextRun.flags);
     screen = 'ending';
-    meta = { ...meta, firstRunCompleted: true };
-    if (!meta.endingsSeen.includes(endingId)) {
-      meta = { ...meta, endingsSeen: [...meta.endingsSeen, endingId] };
+    if (nextRun.chapter !== '3min') {
+      meta = { ...meta, firstRunCompleted: true };
+      if (!meta.endingsSeen.includes(endingId)) {
+        meta = { ...meta, endingsSeen: [...meta.endingsSeen, endingId] };
+      }
     }
   } else {
     screen = 'game';
@@ -116,6 +134,13 @@ function settleRun(prev: SessionState, prevRun: RunState | null, nextRun: RunSta
 function persist(next: SessionState, prevRun: RunState | null): SessionState {
   if (!next.run) return next;
   const finished = STORY_INDEX.nodes.get(next.run.currentNodeId)?.kind === 'ending';
+  if (next.run.chapter === '3min') {
+    if (finished) clearThreeMinRun();
+    else if (!prevRun || next.run.currentNodeId !== prevRun.currentNodeId) {
+      saveThreeMinRun(next.run);
+    }
+    return { ...next, hasSave: hasRun() };
+  }
   if (finished) {
     // 通关即失效：单局存档仅在局中有效，避免「继续游戏」把已结束的一局拉回结局卡
     clearRun();
@@ -128,6 +153,8 @@ function persist(next: SessionState, prevRun: RunState | null): SessionState {
 
 function reducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
+    case 'OPEN_WARNING':
+      return { ...state, pendingChapter: action.chapter, screen: 'warning' };
     case 'START_RUN': {
       const base = startChapter(STORY_INDEX, action.chapter);
       const run: RunState = action.carriedFlags
@@ -139,7 +166,7 @@ function reducer(state: SessionState, action: SessionAction): SessionState {
         ...settled,
         menuOpen: false,
         cluePanelOpen: false,
-        hasSave: true,
+        hasSave: action.chapter === '3min' ? hasRun() : true,
       };
       return persist(next, null);
     }
@@ -231,6 +258,7 @@ function reducer(state: SessionState, action: SessionAction): SessionState {
 interface GameContextValue {
   state: SessionState;
   startRun: (chapter: ChapterId, carriedFlags?: RunState['flags']) => void;
+  openWarning: (chapter: ChapterId) => void;
   continueRun: () => void;
   advance: () => void;
   choose: (optionId: string) => void;
@@ -258,6 +286,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       state,
       startRun: (chapter, carriedFlags) =>
         dispatch({ type: 'START_RUN', chapter, carriedFlags }),
+      openWarning: (chapter) => dispatch({ type: 'OPEN_WARNING', chapter }),
       continueRun: () => {
         const run = loadRun();
         if (run) dispatch({ type: 'CONTINUE_RUN', run });

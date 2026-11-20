@@ -35,6 +35,7 @@ const CHAPTER_NAMES: Record<ChapterId, string> = {
   ch1: '第1章 · 空出来的座位',
   ch2: '第2章 · 失控的群聊',
   ch3: '第3章 · 沉默的旁观者',
+  '3min': '3 分钟体验',
   epilogue: '尾声 · 回声',
 };
 

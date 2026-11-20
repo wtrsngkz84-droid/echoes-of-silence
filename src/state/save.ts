@@ -10,8 +10,10 @@ import type { ProgressMeta, RunState } from '../engine/types';
 
 const SAVE_KEY = 'eos.save.v2';
 const META_KEY = 'eos.meta.v2';
+const THREE_MIN_KEY = 'eos_3min_v1';
 
 const SAVE_VERSION = 2;
+const THREE_MIN_VERSION = 1;
 
 interface Envelope<T> {
   version: number;
@@ -46,22 +48,22 @@ export function setStorageBackendForTests(storage: StorageLike): void {
   defaultStorage = storage;
 }
 
-function readEnvelope<T>(key: string): Envelope<T> | null {
+function readEnvelope<T>(key: string, version = SAVE_VERSION): Envelope<T> | null {
   try {
     const raw = defaultStorage.getItem(key);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Envelope<T>;
     if (typeof parsed !== 'object' || parsed === null) return null;
-    if (parsed.version !== SAVE_VERSION) return null; // 版本不匹配：按无存档处理
+    if (parsed.version !== version) return null; // 版本不匹配：按无存档处理
     return parsed;
   } catch {
     return null;
   }
 }
 
-function writeEnvelope<T>(key: string, data: T): void {
+function writeEnvelope<T>(key: string, data: T, version = SAVE_VERSION): void {
   try {
-    const envelope: Envelope<T> = { version: SAVE_VERSION, updatedAt: Date.now(), data };
+    const envelope: Envelope<T> = { version, updatedAt: Date.now(), data };
     defaultStorage.setItem(key, JSON.stringify(envelope));
   } catch {
     // 存储被禁用/超限时静默失败：游戏内存态不受影响
@@ -97,4 +99,21 @@ export function loadMeta(): ProgressMeta {
 
 export function saveMeta(meta: ProgressMeta): void {
   writeEnvelope(META_KEY, meta);
+}
+
+/** FR-13 三分钟路径独立存档（3min_ 命名空间，不污染完整版）。 */
+export function loadThreeMinRun(): RunState | null {
+  return readEnvelope<RunState>(THREE_MIN_KEY, THREE_MIN_VERSION)?.data ?? null;
+}
+
+export function saveThreeMinRun(run: RunState): void {
+  writeEnvelope(THREE_MIN_KEY, run, THREE_MIN_VERSION);
+}
+
+export function clearThreeMinRun(): void {
+  defaultStorage.removeItem(THREE_MIN_KEY);
+}
+
+export function hasThreeMinRun(): boolean {
+  return loadThreeMinRun() !== null;
 }

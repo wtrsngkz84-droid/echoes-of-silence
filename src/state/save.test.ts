@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   clearRun,
+  clearThreeMinRun,
   hasRun,
   loadMeta,
   loadRun,
+  loadThreeMinRun,
   saveMeta,
   saveRun,
+  saveThreeMinRun,
   setStorageBackendForTests,
   type StorageLike,
 } from './save';
@@ -116,6 +119,27 @@ describe('LocalStorage 存档（单槽位 v2，P-014）', () => {
     const meta = loadMeta();
     expect(meta.completedChapters ?? []).toEqual([]);
     expect(meta.carriedFlags).toBeUndefined();
+  });
+
+  it('3min 存档使用独立键，不污染完整版存档', () => {
+    setStorageBackendForTests(makeStorage());
+    saveRun(sampleRun());
+    saveThreeMinRun(
+      sampleRun({
+        chapter: '3min',
+        currentNodeId: 'S2-001',
+        flags: { '3min_v_xm_help': 2 },
+      }),
+    );
+
+    expect(loadRun()?.chapter).toBe('ch1');
+    expect(loadThreeMinRun()?.currentNodeId).toBe('S2-001');
+    expect(loadThreeMinRun()?.flags['3min_v_xm_help']).toBe(2);
+
+    clearRun();
+    expect(loadThreeMinRun()?.currentNodeId).toBe('S2-001');
+    clearThreeMinRun();
+    expect(loadThreeMinRun()).toBeNull();
   });
 
   it('损坏的存档 JSON / 版本号不匹配 按无存档处理', () => {

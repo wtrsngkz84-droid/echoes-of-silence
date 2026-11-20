@@ -6,7 +6,7 @@ export interface ValidationIssue {
   message: string;
 }
 
-const NODE_ID_RE = /^C[123E]-\d{3}$/;
+const NODE_ID_RE = /^(C[123E]|S[1-5])-\d{3}$/;
 
 /**
  * 剧情数据入库校验：正式剧本交付时必须先通过本校验。

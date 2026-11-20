@@ -389,6 +389,20 @@
   padding-top: 12px;
 }
 
+.ending-card__short {
+  margin: 14px 0;
+  padding: 10px 12px;
+  border: 2px dashed var(--accent);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink-dim);
+  text-align: left;
+}
+
+.ending-card__short p {
+  margin: 0;
+}
+
 .ending-card__actions {
   display: flex;
   gap: 12px;

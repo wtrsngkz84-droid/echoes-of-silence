@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyFlags, readFlag, testCondition } from './conditions';
-import { evaluateEnding, JUDGEMENT_VARS } from './endings';
+import { evaluateEnding, evaluateEndingWithPrefix, JUDGEMENT_VARS } from './endings';
 import {
   advanceNode,
   buildStoryIndex,
@@ -137,6 +137,21 @@ describe('evaluateEnding 判定矩阵（GAMEPLAY_DESIGN §7.1）', () => {
     expect(evaluateEnding({ v_xm_help: 1 })).toBe('E2');
     expect(evaluateEnding({ v_zy_duty: 1 })).toBe('E2');
     expect(evaluateEnding({ v_cy_act: 1 })).toBe('E2');
+  });
+
+  it('3min_ 前缀使用同一判定矩阵', () => {
+    expect(
+      evaluateEndingWithPrefix(
+        {
+          '3min_v_xm_help': 2,
+          '3min_v_zy_duty': 2,
+          '3min_v_cy_act': 2,
+          '3min_v_cy_echo': 0,
+        },
+        '3min_',
+      ),
+    ).toBe('E5');
+    expect(evaluateEndingWithPrefix({}, '3min_')).toBe('E1');
   });
 
   it('判定变量元数据与 GAMEPLAY_DESIGN §5 取值范围一致', () => {

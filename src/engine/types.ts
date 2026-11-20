@@ -8,7 +8,7 @@
  * - factRefs 引用 STORY_BIBLE 的 EV-01~EV-11 证据编号与 §5-A~L 原文编号
  */
 
-export type ChapterId = 'ch1' | 'ch2' | 'ch3' | 'epilogue';
+export type ChapterId = 'ch1' | 'ch2' | 'ch3' | '3min' | 'epilogue';
 
 export type SceneKey =
   | 'home-night'

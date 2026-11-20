@@ -1,0 +1,216 @@
+import type { ChatMessage, StoryNode } from '../engine/types';
+import { CROPPED_SCREENSHOT, PRIVATE_CHAT_FULL_CONTEXT } from './ch1';
+
+/** FR-13 三分钟评审路径（S1–S5，独立 3min_ 命名空间）。 */
+
+const S1_MESSAGES: ChatMessage[] = [
+  { id: 'S1-001-m1', side: 'left', sender: 'yuAn', text: '汇报是我讲的 PPT 是我做的 练了十六遍。现在她私聊跟我说 报告的思路和大部分内容是她写的。大家评评理 这算什么？', time: '21:47' },
+  {
+    id: 'S1-001-m2',
+    side: 'left',
+    sender: 'yuAn',
+    kind: 'screenshot',
+    text: '【截图】',
+    screenshot: CROPPED_SCREENSHOT,
+    time: '21:47',
+  },
+  { id: 'S1-001-a1', side: 'left', sender: 'happyDuck', text: '？这就是传说中的学婊吗', time: '21:55' },
+  { id: 'S1-001-a2', side: 'left', sender: 'zhengXiaoyun', text: '我早觉得她有问题 转学生嘛 抱着老师大腿', time: '21:57' },
+  { id: 'S1-001-a3', side: 'left', sender: 'lemon', text: '组长辛苦讲汇报 有人在台下递刀子 [吃瓜]', time: '22:02' },
+  { id: 'S1-001-a4', side: 'left', sender: 'candy', text: '会不会有误会啊 就一段截图……', time: '22:06' },
+  { id: 'S1-001-a5', side: 'left', sender: 'happyDuck', text: '哟 圣母出来了 帮她洗地的排队挂号哈', time: '22:07' },
+];
+
+const CROP_WRONG: Record<number, string> = {
+  2: '这一句里有「主要完成人」四个字。放进去，锋芒就散了。',
+  3: '我那句「让让我」——当然不能算进来。',
+  4: '这张发出去，锋芒就散了。',
+  6: '这张更不行。这张一发，谁都看得懂她在说什么。……这张，永远不能出现在群里。',
+  8: '她连台阶都给我铺好了。……可我不想下去。',
+};
+
+export const THREE_MIN_NODES: StoryNode[] = [
+  {
+    id: 'S1-001',
+    chapter: '3min',
+    kind: 'chat',
+    scene: 'home-night',
+    tone: 'cold',
+    beat: 'S1 · 群聊爆炸夜',
+    title: '3 分钟体验 · S1 群聊爆炸夜',
+    chatTitle: '初二3班大本营',
+    autoFlood: true,
+    floodFrom: 2,
+    floodIntervalMs: 280,
+    messages: S1_MESSAGES,
+    options: [
+      {
+        id: 'S1-001-O1',
+        text: '把完整私聊截图发进群里，逐条对质',
+        hint: '把全部记录发出去',
+        effects: { '3min_v_xm_variant': 0 },
+        goto: 'S2-001',
+      },
+      {
+        id: 'S1-001-O2',
+        text: '不发图——只把昨晚的话用文字说一遍',
+        hint: '只说话，不放图',
+        effects: { '3min_v_xm_variant': 1 },
+        goto: 'S2-001',
+      },
+      {
+        id: 'S1-001-O3',
+        text: '不进群说。私信予安，问她为什么',
+        hint: '直接问当事人',
+        effects: { '3min_v_xm_variant': 2 },
+        goto: 'S2-001',
+      },
+      {
+        id: 'S1-001-O4',
+        text: '什么都不发。先把所有东西保存下来',
+        hint: '先存证',
+        effects: { '3min_v_xm_variant': 3 },
+        goto: 'S2-001',
+      },
+    ],
+  },
+  {
+    id: 'S2-001',
+    chapter: '3min',
+    kind: 'crop',
+    scene: 'home-night',
+    tone: 'warm',
+    beat: 'S2 · 裁剪之夜',
+    title: 'S2 裁剪之夜',
+    crop: {
+      messages: PRIVATE_CHAT_FULL_CONTEXT.map((row) => ({
+        ...row,
+        side: row.side === 'left' ? ('right' as const) : ('left' as const),
+      })),
+      targetIndex: 5,
+      wrongFeedback: CROP_WRONG,
+      defaultCaption:
+        '21:47：汇报是我讲的 PPT 是我做的 练了十六遍。现在她私聊跟我说 报告的思路和大部分内容是她写的。大家评评理 这算什么？\n\n21:52：还有 她周四放学专门去办公室找了李老师。说了什么 大家自己想。',
+      softGuideAfter: 3,
+    },
+    goto: 'S3-001',
+  },
+  {
+    id: 'S3-001',
+    chapter: '3min',
+    kind: 'composer',
+    scene: 'home-night',
+    tone: 'cold',
+    beat: 'S3 · 输入框',
+    title: 'S3 · 输入框',
+    composer: {
+      candidates: [
+        '可能有点误会吧……她不是那种人',
+        '办公室的事我听到了 她是在帮予安你要名字……',
+        '你们被耍了 那张图是裁过的 她从头到尾都在帮予安',
+      ],
+      sendEffects: { '3min_v_cy_early': 1 },
+      deleteEffects: { '3min_v_cy_early': 0 },
+    },
+    goto: 'S4-001',
+  },
+  {
+    id: 'S4-001',
+    chapter: '3min',
+    kind: 'narration',
+    scene: 'classroom-cold',
+    tone: 'cold',
+    beat: 'S4 · 小满求助向',
+    title: 'S4 · 12/8 · 小满的求助向',
+    text: '12/8。最后几天。小满站在办公室门口。',
+    options: [
+      {
+        id: 'S4-001-O1',
+        text: '把证据交给李老师',
+        hint: '推荐走向',
+        effects: { '3min_v_xm_help': 2 },
+        goto: 'S4-002',
+      },
+      {
+        id: 'S4-001-O2',
+        text: '谁也不找',
+        hint: '把东西收好',
+        effects: { '3min_v_xm_help': 0 },
+        goto: 'S4-002',
+      },
+    ],
+  },
+  {
+    id: 'S4-002',
+    chapter: '3min',
+    kind: 'narration',
+    scene: 'classroom-cold',
+    tone: 'cold',
+    beat: 'S4 · 予安三岔',
+    title: 'S4 · 12/12 · 予安的责任选择',
+    text: '12/12。竞选答辩前。予安看着手里的讲稿。',
+    options: [
+      {
+        id: 'S4-002-O1',
+        text: '自首担责：把该说的说完',
+        hint: '推荐走向',
+        effects: { '3min_v_zy_duty': 2 },
+        goto: 'S4-003',
+      },
+      {
+        id: 'S4-002-O2',
+        text: '冷处理：等风头过去',
+        hint: '什么也不说',
+        effects: { '3min_v_zy_duty': 0 },
+        goto: 'S4-003',
+      },
+      {
+        id: 'S4-002-O3',
+        text: '加码压制：继续竞选',
+        hint: '把手机翻过去',
+        effects: { '3min_v_zy_duty': -1 },
+        goto: 'S4-003',
+      },
+    ],
+  },
+  {
+    id: 'S4-003',
+    chapter: '3min',
+    kind: 'narration',
+    scene: 'classroom-cold',
+    tone: 'cold',
+    beat: 'S4 · 陈屿行动',
+    title: 'S4 · 12/11 · 陈屿的行动',
+    text: '12/11。班会前的最后一个放学后。陈屿翻开速写本。',
+    options: [
+      {
+        id: 'S4-003-O1',
+        text: '群内公开发声',
+        hint: '推荐走向',
+        effects: { '3min_v_cy_act': 3 },
+        goto: 'S5-001',
+      },
+      {
+        id: 'S4-003-O2',
+        text: '私下支持',
+        hint: '把证据收好，交给她',
+        effects: { '3min_v_cy_act': 1 },
+        goto: 'S5-001',
+      },
+      {
+        id: 'S4-003-O3',
+        text: '沉默到底',
+        hint: '坐着就行',
+        effects: { '3min_v_cy_act': 0 },
+        goto: 'S5-001',
+      },
+    ],
+  },
+  {
+    id: 'S5-001',
+    chapter: '3min',
+    kind: 'ending',
+    beat: 'S5 · 结局结算',
+    endingNote: '按同一判定矩阵读取 3min_ 变量（E5→E4→E3→E1→E2）',
+  },
+];

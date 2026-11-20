@@ -4,6 +4,7 @@ import type { ChapterId, StoryIndex } from '../engine/types';
 import { CH1_NODES } from './ch1';
 import { CH2_NODES } from './ch2';
 import { CH3_NODES } from './ch3';
+import { THREE_MIN_NODES } from './threeMin';
 import { CLUE_LIST } from './clues';
 
 /**
@@ -11,12 +12,13 @@ import { CLUE_LIST } from './clues';
  * 新章节交付时：在此追加节点数组与 chapterStarts，勿改动引擎。
  * 当前注册：第一章正式剧本（STORY_SCRIPT V0.1）。
  */
-const ALL_NODES = [...CH1_NODES, ...CH2_NODES, ...CH3_NODES];
+const ALL_NODES = [...CH1_NODES, ...CH2_NODES, ...CH3_NODES, ...THREE_MIN_NODES];
 
 const CHAPTER_STARTS: Partial<Record<ChapterId, string>> = {
   ch1: 'C1-001',
   ch2: 'C2-001',
   ch3: 'C3-001',
+  '3min': 'S1-001',
 };
 
 export const STORY_INDEX: StoryIndex = buildStoryIndex(ALL_NODES, CHAPTER_STARTS);

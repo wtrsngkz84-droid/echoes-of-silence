@@ -4,7 +4,7 @@ import '../../styles/screens.css';
 
 /** 内容提示（PRD §2/§5：开场提示、可随时退出、不收集真实信息） */
 export function ContentWarning() {
-  const { setScreen, startRun } = useGame();
+  const { state, setScreen, startRun } = useGame();
 
   return (
     <div className="warning-screen">
@@ -22,7 +22,7 @@ export function ContentWarning() {
           <PixelButton
             variant="accent"
             onClick={() => {
-              startRun('ch1');
+              startRun(state.pendingChapter);
             }}
           >
             我已知晓，进入故事

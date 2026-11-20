@@ -14,7 +14,7 @@ const CHAPTER_LABELS: Partial<Record<ChapterId, string>> = {
 };
 
 export function TitleScreen() {
-  const { state, setScreen, continueRun, startRun } = useGame();
+  const { state, continueRun, startRun, openWarning } = useGame();
   const [confirmNew, setConfirmNew] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -35,7 +35,7 @@ export function TitleScreen() {
       setConfirmNew(true);
       return;
     }
-    setScreen('warning');
+    openWarning('ch1');
   };
 
   return (
@@ -49,6 +49,7 @@ export function TitleScreen() {
         <PixelButton disabled={!state.hasSave} onClick={continueRun}>
           继续游戏
         </PixelButton>
+        <PixelButton onClick={() => openWarning('3min')}>3 分钟体验</PixelButton>
       </div>
 
       {showChapterSelect && (
@@ -119,7 +120,7 @@ export function TitleScreen() {
                 variant="accent"
                 onClick={() => {
                   setConfirmNew(false);
-                  setScreen('warning');
+                  openWarning('ch1');
                 }}
               >
                 覆盖并重新开始

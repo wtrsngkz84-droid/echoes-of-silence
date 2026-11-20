@@ -3,6 +3,32 @@
 > 本文件记录真实工作状态，供两位成员的 Qoder 在新会话恢复上下文。  
 > 记录“已经做了什么、验证了什么、还差什么”；计划不等于完成，未运行不等于通过。
 
+## 2026-11-18 — FR-13 三分钟评审路径 S1–S5（开发负责人）
+
+- 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。
+- 起始分支与基线提交：main @ `c1727ce`。
+- 任务目标与关联需求：FR-13 双入口与零门槛上手；STORY_FLOW §3 S1–S5；GAMEPLAY_DESIGN §5.4 `3min_` 独立命名空间。
+- 变更文件及原因：
+  - `src/story/threeMin.ts`（新增）：S1 群聊 + CP1 四选、S2 CropNight、S3 MessageComposer、S4 三线快切、S5 ending；全部变量 `3min_` 前缀。
+  - `src/story/index.ts`：注册 `3min` 起始 S1-001。
+  - `src/engine/types.ts`：`ChapterId` 增 `3min`。
+  - `src/engine/validation.ts`：节点编号支持 `S1–S5-xxx`。
+  - `src/engine/endings.ts`：新增 `evaluateEndingWithPrefix`，S5 读取 `3min_` 变量但沿用同一矩阵。
+  - `src/state/save.ts`：新增 `eos_3min_v1`（version 1）独立存取/清除；不触碰 `eos.save.v2`/`eos.meta.v2`。
+  - `src/state/GameContext.tsx`：3min 运行走独立存档；ending 不写结局画廊/章节解锁；新增 `OPEN_WARNING` 与 `pendingChapter`，内容提示按入口进入 ch1 或 3min。
+  - `src/components/screens/TitleScreen.tsx`：「3 分钟体验」入口（与开始/继续并列）。
+  - `src/components/screens/ContentWarning.tsx`：按 pendingChapter 启动。
+  - `src/components/screens/EndingScreen.tsx`：3min 结局固定追加「这是完整体验的十分之一 / 完整体验里，你还有十二天。」+ 进入完整体验 / 重新选择 3 分钟 / 回到标题。
+  - 测试：`threeMin.paths.test.ts`（推荐默认线 E5、沉默线 E1、S1 四选均可进入 S2）；`save.test.ts` 独立存档；`engine.test.ts` 3min 前缀矩阵。
+  - 文档：TECHNICAL.md v0.8、README.md、本日志。
+- 已完成：S1–S5 全流程可玩；标题双入口；3min 存档与完整版互不影响；S5 双跳转与固定引导。
+- 验证方法、命令或游玩步骤：`npx tsc --noEmit`；`npx vitest run`；`npm run build`；浏览器从标题「3 分钟体验」→ 内容提示 → S1 群聊/CP1 → S2 裁剪 → S3 输入框 → S4 三线 → S5 结局。
+- 实际结果：通过。tsc 通过；96/96 测试；build 成功（gzip JS 114.24 KB、CSS 6.29 KB）。浏览器：入口 B 正常；S1–S5 全流程到 E5；S5 显示固定两行引导与三个跳转；过程中只创建 `eos_3min_v1`，未写入 `eos.save.v2`/`eos.meta.v2`，通关后 3min 存档清除。控制台无报错。
+- 未解决问题、风险与依赖：S4 默认项按 U-009 提案固定推荐走向（选项排序），不读完整版存档；3 分钟时长按内容体量估算约 3 分钟，未用秒表实测；3min 存档目前无「继续 3 分钟」入口（每次从 S1 重开）。
+- 新决策编号或待确认提案：U-009 仍待产品负责人确认（当前按提案实现）；未改产品文档。
+- 下一步及接手角色：产品负责人确认 U-009 与 3 分钟时长；开发进入部署准备（Qoder Sites）或群聊发言深度。
+- 提交 / PR 链接：本条与上述代码作为单条提交推送 main；哈希以仓库历史为准。
+
 ## 2026-11-18 — T-P3-4 首轮 5 项修复（开发负责人）
 
 - 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。

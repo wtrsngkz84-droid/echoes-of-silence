@@ -17,10 +17,15 @@ import type { EndingId, Flags } from './types';
  *   5. E2 及时止损   其余全部组合
  */
 export function evaluateEnding(flags: Flags): EndingId {
-  const help = numeric(flags, 'v_xm_help');
-  const duty = numeric(flags, 'v_zy_duty');
-  const act = numeric(flags, 'v_cy_act');
-  const echo = numeric(flags, 'v_cy_echo');
+  return evaluateEndingWithPrefix(flags);
+}
+
+/** 3 分钟路径使用同一矩阵，读取 3min_ 前缀变量。 */
+export function evaluateEndingWithPrefix(flags: Flags, prefix = ''): EndingId {
+  const help = numeric(flags, `${prefix}v_xm_help`);
+  const duty = numeric(flags, `${prefix}v_zy_duty`);
+  const act = numeric(flags, `${prefix}v_cy_act`);
+  const echo = numeric(flags, `${prefix}v_cy_echo`);
 
   if (help >= 2 && duty === 2 && act >= 2 && echo === 0) return 'E5';
   if (duty === 2) return 'E4';
