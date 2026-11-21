@@ -160,7 +160,6 @@ export function GameScreen() {
       <header className="game-topbar">
         <div className="game-topbar__title">
           <span>{CHAPTER_NAMES[run.chapter]}</span>
-          {node.isPlaceholder && <span className="badge">测试占位剧情</span>}
         </div>
         <div className="game-topbar__actions">
           <button

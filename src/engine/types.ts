@@ -252,8 +252,6 @@ export interface StoryNode {
   factRefs?: string[];
   /** 章节引子/结算等大标题 */
   title?: string;
-  /** 测试占位标记：true 时 UI 显示占位徽章，正式剧本不得携带 */
-  isPlaceholder?: boolean;
 }
 
 /**

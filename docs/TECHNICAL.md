@@ -1,6 +1,6 @@
 # TECHNICAL — 《沉默的回声》技术架构说明
 
-> 维护人：开发 / 技术负责人。版本：v0.8。日期：2026-11-18。
+> 维护人：开发 / 技术负责人。版本：v0.9。日期：2026-11-21。
 > 本文件描述实际实现的架构、数据接口、状态变量、存档方案与验证方式。
 > 重大架构变更必须更新本文件并在 docs/QODER_DEV_LOG.md 留痕。
 > v0.2：对齐 P-014（GAMEPLAY_DESIGN §7.1 五结局判定矩阵 + v_* 数值变量 + EV 证据编号）。
@@ -13,6 +13,7 @@
 > v0.7：M2 P2——章节解锁链（携带重玩/全新开始）、结局画廊、章节回顾；EndingScreen 增加画廊入口。
 > v0.7.1：T-P3-4 首轮 5 项修复——C3-046 条件文案、C3-054 条件线索、推理 solvedEffects（C2/C3）、班会双重追责、散会行分叉。
 > v0.8：FR-13 三分钟评审路径 S1–S5（3min_ 独立命名空间、eos_3min_v1 独立存档、标题双入口、S5 固定引导与双跳转）。
+> v0.9：收尾验收——390/768/1440 三档视口自测与竖屏适配、Nudge 设计变量（`--site-*`）、测试占位标记 `isPlaceholder` 移除、Qoder Sites 公网发布与静态部署说明。
 
 ## 1. 技术栈与运行方式
 
@@ -32,6 +33,19 @@ npm test           # 运行全部单元测试
 npm run build      # 类型检查 + 生产构建（输出 dist/）
 npm run preview    # 本地预览构建产物
 ```
+
+### 部署（v0.9）
+
+- 线上地址：<https://echoes-of-silence-rwx94cwcoxm.qoder.zone>（Qoder Sites，公开访问、无需登录；完整版 + 3 分钟体验双入口）。作品要求在 Qoder Sites 公网部署，`dist/` 同时可托管于任意静态服务器。
+- `vite.config.ts` 使用 `base: './'`，构建产物全部为相对资源，可直接放在任意子路径；`index.html` 单入口，无路由依赖，静态刷新返回 200。
+- 发布方式：`npm run build` → 将 `dist/` 交给 Qoder Sites / 静态托管；本次发布的 `dist` 与线上 asset 哈希一致（`index-XEPAWAMI.js` / `index-znK5NoiP.css`）。
+- 构建体积基线（gzip）：JS 114.20 KB、CSS 6.63 KB、HTML 0.47 KB。
+
+### 终端适配与设计变量（v0.9）
+
+- 舞台保持 16:9；竖屏且宽度 ≤900px 时改为全视口（`100vw × 100vh`），避免 390px 手机竖屏下舞台过矮、标题与按钮被裁。
+- 560px / 720px 两档媒体查询压缩顶栏、聊天窗与选项列表；竖屏下聊天窗与选项分别限高并可内部滚动，避免遮挡。
+- 设计变量收敛在 `base.css` 的 `--site-*`（bg/fg/accent/surface/muted/border/font/radius/space/type/motion），并别名到原有 `--bg-page/--ink/...`；组件只用变量消费，便于统一调参。
 
 ## 2. 三层架构（B-003：剧情数据与引擎分离）
 
@@ -68,9 +82,9 @@ src/
 ```ts
 interface StoryNode {
   id: string;              // C{章}-{序号三位}，如 C1-005（STORY_FLOW 两位编号补零）；子节点 C1-0N{序}；M0.5 演示 C1-9xx / CE-9xx
-  chapter: 'ch1'|'ch2'|'ch3'|'epilogue';
+  chapter: 'ch1'|'ch2'|'ch3'|'3min'|'epilogue';
   beat?: string;           // 节拍号，如 B1-5（STORY_FLOW §2）
-  kind: 'narration'|'dialogue'|'inner'|'chat'|'typing'|'summary'|'clue'|'settlement'|'ending';
+  kind: 'narration'|'dialogue'|'inner'|'chat'|'call'|'crop'|'reasoning'|'checklist'|'composer'|'typing'|'summary'|'clue'|'settlement'|'ending';
   scene?: SceneKey;        // 场景背景（暖/冷色调由 tone 驱动）
   tone?: 'warm'|'cold'|'neutral';   // STORY_BIBLE §7 色调基调（D10 前暖黄，D12 起冷灰蓝）
   speaker?: CharacterId;   // dialogue 必填
@@ -89,7 +103,6 @@ interface StoryNode {
   endingNote?: string;     // 结局节点备注（结局 id 由引擎求值，不由剧本指定）
   factRefs?: string[];     // 引用的 STORY_BIBLE 证据编号（EV-xx）与原文编号（§5-A~L）
   title?: string;          // 场景大标题（章节引子/日期）
-  isPlaceholder?: boolean; // 测试占位标记：UI 显示徽章，正式剧本禁用
 }
 
 interface StoryOption {
@@ -99,6 +112,7 @@ interface StoryOption {
   requires?: Condition;   // 不满足则隐藏（支持 flag / v_* 比较 / 线索混合条件）
   effects?: FlagPatch;    // 选择后写入
   hint?: string;           // 选项旁提示小字
+  price?: string;          // 行动代价标签，如「代价 · 时间」（C3-006）
 }
 
 interface Condition {
@@ -151,7 +165,7 @@ interface NodeVariant {
 
 **章末小结**（`kind: 'summary'`，C1-010）：
 - `ChapterSummary` 读取 `buildChapterSummary(run.flags)` 的纯函数结果，渲染条件摘要行、倒计时锚与固定引导语。
-- C1-010 → C2-001；C2-009 → C3-001；C3-008 为结局判定节点，C3-009 的出口/画廊/回顾未实现（M2 P2）。
+- C1-010 → C2-001；C2-009 → C3-001；C3-008 为结局判定节点（C3-009 无专用数据节点，出口/画廊/回顾由 M2 P2 的界面承担）。
 - 第二/三章新增节点类型：`call`（电话字幕）、`composer`（输入框发送/删除）、`crop`（裁剪交互）、`reasoning`（推理指认）、`checklist`（担责清单，效果由 `fullEffects`/`partialEffects` 数据定义）。`StoryOption.price` 支持价格标签；`RunState.deletedMessages` 为已删除消息存档（旧档缺失按空数组）。
 
 **条件文本变体**（`variants`）：
@@ -198,7 +212,7 @@ interface NodeVariant {
 ## 6. 校验与测试
 
 - `validateStory`：正式剧本入库前必须通过（error 阻断：goto 断裂/缺 text/messages/speaker/线索不存在/章节起点缺失/screenshot 消息缺截图内容/typing 缺 draft 或 final/floodFrom 越界；warning：节点 id 命名偏离三位约定/autoFlood 用在非 chat 节点）。开发模式在控制台输出。
-- 单元测试 **96 项**：条件求值（真值/取反/组合/线索/**v_* 数值比较语法**）、结局判定（E1–E5 各命中分支 + **128 组合表驱动枚举**与 §7.1 独立重述逐一比对）、节点推进（effects/线索去重/选项拦截/聊天过滤/截图内容校验/**条件文本变体**）、**自动上涌状态机**、**截图查看器状态**、**推理指认状态机（错误可重试/正确锁定）**、**担责清单两档（全选 2/部分 1）**、存档（单槽位覆盖/通关失效/损坏 JSON/静默失败/**旧档 deletedMessages 兼容**）、**第一/二章 §5 关键原文逐字包含**、**C1/C2 摘要渲染**、**第一、二章各四条章级路径终态变量**、**C2-005 四变体 × 留群跨章渲染**、**选项 hint 不含内部变量/文档编号**。
+- 单元测试 **95 项**：条件求值（真值/取反/组合/线索/**v_* 数值比较语法**）、结局判定（E1–E5 各命中分支 + **128 组合表驱动枚举**与 §7.1 独立重述逐一比对）、节点推进（effects/线索去重/选项拦截/聊天过滤/截图内容校验/**条件文本变体**）、**自动上涌状态机**、**截图查看器状态**、**推理指认状态机（错误可重试/正确锁定）**、**担责清单两档（全选 2/部分 1）**、存档（单槽位覆盖/通关失效/损坏 JSON/静默失败/**旧档 deletedMessages 兼容**/**`eos_3min_v1` 与完整版隔离**）、**第一/二/三章 §5 关键原文逐字包含**、**C1/C2 摘要渲染**、**第一、二、三章各四条章级路径终态变量**、**C2-005 四变体 × 留群跨章渲染**、**FR-13 S1–S5 三条路径（默认 E5 / 沉默 E1 / 四选均可进入 S2）**、**选项 hint 不含内部变量/文档编号**。
 - 浏览器实测（2026-11-16，STORY_SCRIPT V0.1 入库后，应用内浏览器 + 存档注入分段）：
   - 默认线：`v_xm_help=3`、`v_xm_variant=0`、`v_xm_stay=0`、`v_xm_read_zhou=1`、`v_mom_alert=0`、`v_xm_openness=1`、`v_xm_ask_cy=1`；摘要含「妈妈知道了全部」「她敲了办公室的门。李老师收下了全部材料。」
   - 沉默线：`v_xm_help=0`、`v_xm_variant=3`、`v_xm_stay=1`、`v_xm_openness=0`；摘要含「她留在群里，一句话也没有说」「十二天，她把所有东西都收在帆布包里，没有交出去。」
@@ -209,6 +223,7 @@ interface NodeVariant {
   - C1-064 改为周日夜选择（内心提示），C1-065/066 的 23:41/23:52 与周一清晨 C1-068 不再矛盾。
   - 生产构建不含 EndingScreen 的判定矩阵输入块（dev-only）；控制台零报错。完整路径同时由 `ch1.paths.test.ts` 的引擎级测试覆盖。
 - 前次浏览器实测：2026-11-16 查看器（裁剪图→完整记录 9 条、4 处断口、Esc/遮罩关闭）、自动上涌暂停/恢复/2×/回滚、C1-063 打字删除；2026-11-14 全流程抽查与存档恢复。控制台零报错。
+- 收尾验收（2026-11-21）：390×844 / 768×1024 / 1440×900 三档视口逐一实测标题（含 3 分钟入口、画廊/章节选择）、内容提示、完整版章节链路、3 分钟 S1–S5、聊天/裁剪/推理/清单/输入框/结局卡；发现并修复 390px 竖屏舞台被压成 16:9 横带（改为全视口）、聊天窗与选项列表重叠（限高 + 内部滚动）、`--site-space` 被组件 padding 覆盖（改在 game.css 消费变量）。修复后三档无横向滚动、主操作均在视口内。
 - M0 审查 3 个 UI 问题修复：530px 顶栏徽章压缩聊天窗（两档 @media 缩小）、聊天窗新消息提示（`● 新消息 ×N · 点击播放`）、结局卡判定输入展示改用引擎 `JUDGEMENT_VARS` 单一来源。另修复：走廊场景装饰「红榜」（v0.1 遗留）改「公告栏」；v0.3 清理 `game.css` 残留 `F-14a` 注释。
 
 ## 7. 当前实现范围与边界
@@ -217,6 +232,7 @@ interface NodeVariant {
 - **已移除演示网关**：C1-901 与 C2-901 均已移除；C2-009 → C3-001，C3-008 使用正式结局卡。EndingScreen 演示块已移除。
 - **M2 P2 已实现**：章节解锁链（完成 ch1 解锁 ch2、ch2 解锁 ch3；标题屏「从章节开始」）、携带重玩（`meta.carriedFlags`，过滤 `v_did_*`）/全新开始、结局画廊（E1–E5 点亮/锁定）、章节回顾（已完成章节 + 证据图鉴 + 结局）；EndingScreen 增加画廊入口，回到标题后可重玩。
 - **FR-13 三分钟路径（v0.8）**：标题屏入口 B「3 分钟体验」→ S1 群聊（C1-CP1 四选）→ S2 CropNight → S3 MessageComposer → S4 三线快切 → S5 同一矩阵结算；全部变量 `3min_` 前缀，存档键 `eos_3min_v1`（version 1），不写完整版 `eos.save.v2`/`eos.meta.v2`；S5 固定「这是完整体验的十分之一 / 完整体验里，你还有十二天。」+ 进入完整体验 / 重新选择 3 分钟。
+- **收尾交付（v0.9）**：三档视口真机自测完成；生产构建通过并已用 Qoder Sites 公网发布（公开访问、匿名可玩）；`dist/` 可直接静态部署。发布素材存于 `release-assets/`（游戏内 3 张 + 过程记录 3 张）。
 - **待实现**：群聊玩家发言深度（PRD-TBD-02）、像素字库与正式美术资源（ASSET_LIST）、C3-009 的专用尾声数据节点（当前出口由标题/结局屏承担）。
 - **引擎设计已预留**：`settlement` 节点类型（章末结算）、`clues` 条件、meta 图鉴、`variants` 条件文本、`price` 价格标签、`deletedMessages` 存档字段。
 
@@ -233,3 +249,4 @@ interface NodeVariant {
 - 2026-11-18 v0.7：M2 P2。完成章节解锁链、携带重玩/全新开始、结局画廊、章节回顾；`ProgressMeta` 增加 `completedChapters`/`carriedFlags`（旧档兼容）；测试 88 项。
 - 2026-11-18 v0.7.1：T-P3-4 首轮 5 项修复。C3-046 拆分 `v_xm_ask_cy` 条件文案；推理支持 `conditionalClues`（EV-08 线索条件渲染）与 `solvedEffects`（指认正确才写 `v_did_ident`，C2-006/C3-054 同步）；C3-007 增加双重追责行与散会行 `v_xm_help` 分叉；测试 91 项。
 - 2026-11-18 v0.8：FR-13 三分钟路径。新增 `story/threeMin.ts` S1–S5 与 ch3 后入口；`ChapterId` 增 `3min`，节点编号支持 `S1–S5-xxx`；`evaluateEndingWithPrefix` 读取 `3min_` 变量；`eos_3min_v1` 独立存档与完整版互不影响；S5 固定引导与双跳转；测试 96 项。
+- 2026-11-21 v0.9：收尾验收与部署。`isPlaceholder` 移除（正式剧本全量，占位徽章退场）；390/768/1440 三档视口自测并修复竖屏舞台、聊天窗/选项重叠与 `--site-space` 覆盖问题；新增 Nudge 设计变量 `--site-*`；Qoder Sites 公网发布（匿名可玩，完整版 + 3 分钟）；TECHNICAL/README/DEV_LOG 同步部署说明与最终基线（JS gzip 114.20 KB / CSS 6.63 KB）；测试 95 项（移除已无意义的 isPlaceholder 用例）。

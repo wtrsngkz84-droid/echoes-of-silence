@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: calc(10px * var(--site-space, 1)) calc(14px * var(--site-space, 1));
   font-size: 13px;
   color: var(--ink-dim);
   background: linear-gradient(180deg, rgba(12, 10, 20, 0.85), rgba(12, 10, 20, 0));
@@ -464,7 +464,7 @@
   border: 2px solid var(--panel-edge);
   box-shadow: 0 3px 0 var(--panel-edge);
   cursor: pointer;
-  transition: transform 120ms steps(2), box-shadow 120ms steps(2);
+  transition: transform var(--motion-fast) steps(2), box-shadow var(--motion-fast) steps(2);
 }
 
 .chat-msg__screenshot:hover,
@@ -1541,5 +1541,68 @@
 
   .game-topbar__title .badge {
     display: none;
+  }
+}
+
+/* 竖屏全视口：手机/平板竖屏下覆盖 560px 档的极小聊天窗 */
+@media (orientation: portrait) and (max-width: 900px) {
+  .phone-chat {
+    width: min(92vw, 420px);
+    bottom: 6%;
+  }
+
+  .phone-chat__body {
+    height: min(42vh, 360px);
+  }
+
+  .chat-msg__screenshot {
+    width: min(74vw, 260px);
+  }
+
+  .choice-list {
+    width: 92%;
+    max-width: 420px;
+    bottom: 2%;
+    max-height: 44vh;
+    overflow-y: auto;
+  }
+
+  .choice-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .dialogue-box {
+    bottom: 3%;
+    min-height: 28vh;
+  }
+
+  .typing-delete {
+    width: 92%;
+    bottom: 6%;
+  }
+
+  .phone-call {
+    width: 92%;
+    bottom: 8%;
+  }
+
+  .crop-night,
+  .reasoning-panel,
+  .duty-checklist {
+    padding: 8px;
+  }
+
+  .crop-night__panel,
+  .reasoning-panel__card,
+  .duty-checklist__card {
+    width: 100%;
+    max-height: 96%;
+  }
+
+  .shot-viewer__panel,
+  .chapter-summary__card {
+    width: 96%;
+    max-height: 96%;
   }
 }

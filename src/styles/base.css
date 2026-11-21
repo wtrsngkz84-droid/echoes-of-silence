@@ -1,26 +1,53 @@
 /* 基础样式与设计令牌 — 沉默的回声 */
 
 :root {
-  --bg-page: #100e1a;
+  /* Qoder Sites design tokens（Nudge 可调；默认值保持原像素风） */
+  --site-bg: #100e1a;
+  --site-fg: #ece6f2;
+  --site-accent: #e8b04b;
+  --site-on-accent: #100e1a;
+  --site-surface: #241f3d;
+  --site-muted: #a99fc0;
+  --site-border: #0c0a14;
+  --site-font: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  --site-radius: 0px;
+  --site-space: 1;
+  --site-type: 1;
+  --site-motion: 1;
+
+  --bg-page: var(--site-bg);
   --bg-stage: #1c1830;
-  --ink: #ece6f2;
-  --ink-dim: #a99fc0;
+  --ink: var(--site-fg);
+  --ink-dim: var(--site-muted);
   --ink-faint: #6f6588;
-  --accent: #e8b04b;
+  --accent: var(--site-accent);
   --accent-deep: #b5822f;
   --danger: #c4524a;
   --good: #7a9e6b;
-  --line: #0c0a14;
+  --line: var(--site-border);
 
-  --panel-bg: #241f3d;
-  --panel-edge: #0c0a14;
+  --panel-bg: var(--site-surface);
+  --panel-edge: var(--site-border);
 
   /* 像素中文字体占位：ASSET_LIST 定稿后在此接入授权字库 */
-  --font-body: 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  --font-body: var(--site-font);
   --font-pixel: var(--font-body);
+  --motion-fast: calc(120ms * var(--site-motion, 1));
 
   --tone-warm: #f0d8a8;
   --tone-cold: #7d8fa8;
+}
+
+.pixel-btn,
+.pixel-panel,
+.phone-chat,
+.dialogue-box,
+.choice-btn,
+.topbar-btn,
+.meta-panel,
+.ending-card,
+.shot-viewer__panel {
+  border-radius: var(--site-radius, 0px);
 }
 
 * {
@@ -39,6 +66,7 @@ body {
   background: var(--bg-page);
   color: var(--ink);
   font-family: var(--font-body);
+  font-size: calc(16px * var(--site-type, 1));
   letter-spacing: 0.03em;
   line-height: 1.6;
   image-rendering: pixelated;
@@ -74,6 +102,14 @@ button:disabled {
   background: var(--bg-stage);
   overflow: hidden;
   box-shadow: 0 0 0 3px var(--panel-edge), 0 0 60px rgba(0, 0, 0, 0.6);
+}
+
+/* 竖屏窄设备：16:9 舞台高度不足以容纳 UI，改用全视口 */
+@media (orientation: portrait) and (max-width: 900px) {
+  .stage {
+    width: 100vw;
+    height: 100vh;
+  }
 }
 
 /* 色调层：D10 暖黄 / D12 冷灰蓝（STORY_BIBLE §7），由游玩根节点 data-tone 驱动 */

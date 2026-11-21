@@ -64,12 +64,6 @@ describe('剧情数据完整性', () => {
     }
   });
 
-  it('正式剧本不得携带 isPlaceholder 标记', () => {
-    for (const node of STORY_INDEX.nodes.values()) {
-      expect(node.isPlaceholder, `${node.id} 仍带占位标记`).toBeUndefined();
-    }
-  });
-
   it('选项 hint 仅含玩家向文案，不含内部变量或文档编号', () => {
     for (const node of STORY_INDEX.nodes.values()) {
       for (const option of node.options ?? []) {
