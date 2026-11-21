@@ -14,6 +14,7 @@ interface TypingDeleteProps {
  */
 export function TypingDelete({ effect, onDone }: TypingDeleteProps) {
   const {
+    label = '输入框',
     draft,
     final,
     typeMs = 45,
@@ -64,7 +65,7 @@ export function TypingDelete({ effect, onDone }: TypingDeleteProps) {
 
   return (
     <div className="typing-delete" data-phase={phase} aria-label="输入框演出">
-      <div className="typing-delete__label">给妈妈</div>
+      <div className="typing-delete__label">{label}</div>
       <div className="typing-delete__field" aria-live="polite">
         <span>{shown}</span>
         <span className="typing-delete__caret" aria-hidden />

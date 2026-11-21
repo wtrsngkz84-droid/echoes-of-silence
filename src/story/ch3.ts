@@ -213,6 +213,7 @@ export const CH3_NODES: StoryNode[] = [
     beat: '群聊之夜 11/27',
     title: '21:52 · 输入框',
     composer: {
+      sceneNote: '群聊之夜 · 陈屿侧：群里还在刷。你盯着输入框。',
       candidates: [
         '可能有点误会吧……她不是那种人',
         '办公室的事我听到了 她是在帮予安你要名字……',
@@ -742,7 +743,7 @@ export const CH3_NODES: StoryNode[] = [
     kind: 'chat',
     scene: 'classroom',
     tone: 'cold',
-    beat: '班会 12/14',
+    beat: '教室 · 你的座位',
     title: '12/14 · 周一 · 班会',
     chatTitle: '班会',
     messages: [

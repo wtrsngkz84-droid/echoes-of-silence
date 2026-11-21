@@ -49,6 +49,9 @@ export function CropNight({ content, onComplete }: CropNightProps) {
         <header className="crop-night__head">
           <div>
             <div className="crop-night__title">裁剪之夜</div>
+            {content.headerNote && (
+              <div className="crop-night__device">{content.headerNote}</div>
+            )}
             <div className="crop-night__sub">
               {phase === 'select' ? '点击任意一条消息截图' : '图已截好'}
             </div>

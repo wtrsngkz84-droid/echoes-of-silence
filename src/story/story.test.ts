@@ -102,6 +102,7 @@ describe('剧情数据完整性', () => {
     const typing = STORY_INDEX.nodes.get('C1-063');
     expect(before?.goto).toBe('C1-061');
     expect(typing?.kind).toBe('typing');
+    expect(typing?.typing?.label).toBe('给妈妈');
     expect(typing?.typing?.draft).toContain('是我没做好');
     expect(typing?.typing?.final).toBe('');
     expect(typing?.goto).toBe('C1-064');
@@ -197,12 +198,25 @@ describe('剧情数据完整性', () => {
     const node = STORY_INDEX.nodes.get('C2-004');
     expect(node?.crop?.targetIndex).toBe(5);
     expect(node?.crop?.messages[5].time).toBe('20:33');
+    expect(node?.crop?.headerNote).toBe('11/27 夜 · 予安的手机');
     expect(node?.crop?.defaultCaption).toContain(
       '练了十六遍。现在她私聊跟我说 报告的思路和大部分内容是她写的。大家评评理 这算什么？',
     );
     expect(node?.crop?.defaultCaption).toContain(
       '还有 她周四放学专门去办公室找了李老师。说了什么 大家自己想。',
     );
+    const crop = node!.crop!;
+    const missing = crop.messages
+      .map((_, index) => index)
+      .filter((index) => index !== crop.targetIndex && !crop.wrongFeedback[index]);
+    expect(missing).toEqual([]);
+    expect(Object.keys(crop.wrongFeedback)).toHaveLength(crop.messages.length - 1);
+  });
+
+  it('C2-083 打字删除标签为「给小满」', () => {
+    const node = STORY_INDEX.nodes.get('C2-083');
+    expect(node?.kind).toBe('typing');
+    expect(node?.typing?.label).toBe('给小满');
   });
 
   it('C3-046 按 v_xm_ask_cy 显示问句或替代表演，不泄露实现注记', () => {
@@ -227,6 +241,13 @@ describe('剧情数据完整性', () => {
     expect(visibleNodeText({ ...base, flags: { v_xm_ask_cy: 1 } }, node!)).toBe(
       '班会那天……你愿意帮我作证吗？',
     );
+  });
+
+  it('C3-021 输入框带场景说明，C3-007 副行提示「你的座位」', () => {
+    expect(STORY_INDEX.nodes.get('C3-021')?.composer?.sceneNote).toBe(
+      '群聊之夜 · 陈屿侧：群里还在刷。你盯着输入框。',
+    );
+    expect(STORY_INDEX.nodes.get('C3-007')?.beat).toBe('教室 · 你的座位');
   });
 
   it('C3-007 按 v_did_ident 追加双重追责，按 v_xm_help 分叉散会行', () => {

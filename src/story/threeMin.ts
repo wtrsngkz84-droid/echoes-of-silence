@@ -126,6 +126,7 @@ export const THREE_MIN_NODES: StoryNode[] = [
     beat: '11/27 · 予安的手机',
     title: 'S2 裁剪之夜',
     crop: {
+      headerNote: '11/27 夜 · 予安的手机',
       messages: PRIVATE_CHAT_FULL_CONTEXT.map((row) => ({
         ...row,
         side: row.side === 'left' ? ('right' as const) : ('left' as const),

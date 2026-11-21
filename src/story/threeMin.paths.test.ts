@@ -105,6 +105,7 @@ describe('FR-13 三分钟路径 S1–S5', () => {
     expect(node?.kind).toBe('crop');
     const crop = node?.crop;
     expect(crop).toBeTruthy();
+    expect(crop!.headerNote).toBe('11/27 夜 · 予安的手机');
     const missing = crop!.messages
       .map((_, index) => index)
       .filter((index) => index !== crop!.targetIndex && !crop!.wrongFeedback[index]);

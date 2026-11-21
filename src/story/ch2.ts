@@ -320,13 +320,17 @@ export const CH2_NODES: StoryNode[] = [
     factRefs: ['§5-C', '§5-E', 'EV-02'],
     clueId: 'EV-02',
     crop: {
+      headerNote: '11/27 夜 · 予安的手机',
       messages: CROP_MESSAGES,
       targetIndex: 5,
       wrongFeedback: {
+        0: '这一句什么都证明不了。放进去，只会显得我在无理取闹。',
+        1: '这句在替全组高兴。放进去，锋芒就散了。',
         2: '这一句里有「主要完成人」四个字。放进去，锋芒就散了。',
         3: '我那句「让让我」——当然不能算进来。',
         4: '这张发出去，锋芒就散了。',
         6: '这张更不行。这张一发，谁都看得懂她在说什么。……这张，永远不能出现在群里。',
+        7: '这一句是我自己回的。放进去，倒像是我先认了。',
         8: '她连台阶都给我铺好了。……可我不想下去。',
       },
       defaultCaption:
@@ -989,6 +993,7 @@ export const CH2_NODES: StoryNode[] = [
     tone: 'cold',
     beat: '责任窗口 12/9–12/11',
     typing: {
+      label: '给小满',
       draft: '对不起\n你还好吗\n群里的事……',
       final: '',
     },

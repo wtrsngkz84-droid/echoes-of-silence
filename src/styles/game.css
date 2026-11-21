@@ -770,6 +770,13 @@
   color: var(--accent);
 }
 
+.crop-night__device {
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
 .crop-night__body {
   flex: 1;
   min-height: 0;

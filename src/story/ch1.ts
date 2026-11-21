@@ -831,6 +831,7 @@ export const CH1_NODES: StoryNode[] = [
     tone: 'cold',
     beat: '缺席日 11/30',
     typing: {
+      label: '给妈妈',
       draft:
         '妈 学校里出事了。他们把一张裁掉的截图发到群里……我没事，就是睡不着。你会不会觉得，是我没做好？',
       final: '',

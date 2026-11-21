@@ -113,6 +113,8 @@ export interface ComposerContent {
 
 /** 裁剪交互（C2-004）：九条完整私聊 + 目标条 + 错误反馈 */
 export interface CropContent {
+  /** 裁剪界面的归属提示（谁的手机 / 哪一夜） */
+  headerNote?: string;
   messages: ScreenshotRow[];
   targetIndex: number;
   wrongFeedback: Record<number, string>;
@@ -162,6 +164,8 @@ export interface ChecklistContent {
 
 /** 「打字又删掉」演出参数（GAMEPLAY_DESIGN §2.3） */
 export interface TypingEffect {
+  /** 输入框上方的对象标签，如「给妈妈」；缺省显示「输入框」 */
+  label?: string;
   /** 草稿层长文：逐字浮现后逐字消隐 */
   draft: string;
   /** 定格最终文案（可为空字符串，表示输入框最终留空） */
