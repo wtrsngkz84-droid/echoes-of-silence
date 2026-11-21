@@ -198,6 +198,7 @@ export function GameScreen() {
         />
       ) : node.kind === 'composer' && node.composer ? (
         <MessageComposer
+          sceneNote={node.composer.sceneNote}
           candidates={node.composer.candidates}
           onSend={(text) => game.resolveComposer('send', text)}
           onDelete={(text) => game.resolveComposer('delete', text)}

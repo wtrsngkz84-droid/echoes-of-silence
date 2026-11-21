@@ -83,4 +83,48 @@ describe('FR-13 三分钟路径 S1–S5', () => {
       expect(run.currentNodeId).toBe('S5-001');
     }
   });
+
+  it('S1 四个自证选项各有独立后果节点并进入 S2', () => {
+    const consequenceIds = new Set<string>();
+    const consequenceTexts = new Set<string>();
+    for (const optionId of ['S1-001-O1', 'S1-001-O2', 'S1-001-O3', 'S1-001-O4']) {
+      const atChoice = runToChoice(startChapter(STORY_INDEX, '3min'));
+      const after = chooseOption(atChoice, STORY_INDEX, optionId);
+      const node = STORY_INDEX.nodes.get(after.currentNodeId);
+      expect(node?.kind).toBe('narration');
+      expect(node?.goto).toBe('S2-001');
+      consequenceIds.add(node!.id);
+      consequenceTexts.add(node!.text ?? '');
+    }
+    expect(consequenceIds.size).toBe(4);
+    expect(consequenceTexts.size).toBe(4);
+  });
+
+  it('S2 每个非目标消息都有错误反馈', () => {
+    const node = STORY_INDEX.nodes.get('S2-001');
+    expect(node?.kind).toBe('crop');
+    const crop = node?.crop;
+    expect(crop).toBeTruthy();
+    const missing = crop!.messages
+      .map((_, index) => index)
+      .filter((index) => index !== crop!.targetIndex && !crop!.wrongFeedback[index]);
+    expect(missing).toEqual([]);
+    expect(Object.keys(crop!.wrongFeedback)).toHaveLength(crop!.messages.length - 1);
+  });
+
+  it('S3 输入框带场景说明，S4 主副标题不重复', () => {
+    const s3 = STORY_INDEX.nodes.get('S3-001');
+    expect(s3?.kind).toBe('composer');
+    expect(s3?.composer?.sceneNote).toContain('陈屿侧');
+
+    const s4 = STORY_INDEX.nodes.get('S4-001');
+    expect(s4?.title).toBe('S4 · 小满的求助');
+    for (const id of ['S1-001', 'S2-001', 'S3-001', 'S4-001', 'S4-002', 'S4-003']) {
+      const node = STORY_INDEX.nodes.get(id);
+      expect(node?.title).toBeTruthy();
+      expect(node?.beat).toBeTruthy();
+      expect(node?.title).not.toBe(node?.beat);
+      expect(node?.title).not.toContain('求助向');
+    }
+  });
 });

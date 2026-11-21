@@ -22,10 +22,13 @@ const S1_MESSAGES: ChatMessage[] = [
 ];
 
 const CROP_WRONG: Record<number, string> = {
+  0: '这一句什么都证明不了。放进去，只会显得我在无理取闹。',
+  1: '这句在替全组高兴。放进去，锋芒就散了。',
   2: '这一句里有「主要完成人」四个字。放进去，锋芒就散了。',
   3: '我那句「让让我」——当然不能算进来。',
   4: '这张发出去，锋芒就散了。',
   6: '这张更不行。这张一发，谁都看得懂她在说什么。……这张，永远不能出现在群里。',
+  7: '这一句是我自己回的。放进去，倒像是我先认了。',
   8: '她连台阶都给我铺好了。……可我不想下去。',
 };
 
@@ -36,7 +39,7 @@ export const THREE_MIN_NODES: StoryNode[] = [
     kind: 'chat',
     scene: 'home-night',
     tone: 'cold',
-    beat: 'S1 · 群聊爆炸夜',
+    beat: '11/27 · 初二3班大本营',
     title: '3 分钟体验 · S1 群聊爆炸夜',
     chatTitle: '初二3班大本营',
     autoFlood: true,
@@ -49,30 +52,70 @@ export const THREE_MIN_NODES: StoryNode[] = [
         text: '把完整私聊截图发进群里，逐条对质',
         hint: '把全部记录发出去',
         effects: { '3min_v_xm_variant': 0 },
-        goto: 'S2-001',
+        goto: 'S1-002',
       },
       {
         id: 'S1-001-O2',
         text: '不发图——只把昨晚的话用文字说一遍',
         hint: '只说话，不放图',
         effects: { '3min_v_xm_variant': 1 },
-        goto: 'S2-001',
+        goto: 'S1-003',
       },
       {
         id: 'S1-001-O3',
         text: '不进群说。私信予安，问她为什么',
         hint: '直接问当事人',
         effects: { '3min_v_xm_variant': 2 },
-        goto: 'S2-001',
+        goto: 'S1-004',
       },
       {
         id: 'S1-001-O4',
         text: '什么都不发。先把所有东西保存下来',
         hint: '先存证',
         effects: { '3min_v_xm_variant': 3 },
-        goto: 'S2-001',
+        goto: 'S1-005',
       },
     ],
+  },
+  {
+    id: 'S1-002',
+    chapter: '3min',
+    kind: 'narration',
+    scene: 'home-night',
+    tone: 'cold',
+    beat: 'S1 · 自证后果',
+    text: '她发出了完整记录。没有人相信她。',
+    goto: 'S2-001',
+  },
+  {
+    id: 'S1-003',
+    chapter: '3min',
+    kind: 'narration',
+    scene: 'home-night',
+    tone: 'cold',
+    beat: 'S1 · 自证后果',
+    text: '她把那晚的话，用文字说了一遍。没有人愿意读。',
+    goto: 'S2-001',
+  },
+  {
+    id: 'S1-004',
+    chapter: '3min',
+    kind: 'narration',
+    scene: 'home-night',
+    tone: 'cold',
+    beat: 'S1 · 自证后果',
+    text: '她私信了予安，问了一句为什么。没有等到回音。',
+    goto: 'S2-001',
+  },
+  {
+    id: 'S1-005',
+    chapter: '3min',
+    kind: 'narration',
+    scene: 'home-night',
+    tone: 'cold',
+    beat: 'S1 · 自证后果',
+    text: '她什么都没有发。证据一条一条，躺在手机里。',
+    goto: 'S2-001',
   },
   {
     id: 'S2-001',
@@ -80,7 +123,7 @@ export const THREE_MIN_NODES: StoryNode[] = [
     kind: 'crop',
     scene: 'home-night',
     tone: 'warm',
-    beat: 'S2 · 裁剪之夜',
+    beat: '11/27 · 予安的手机',
     title: 'S2 裁剪之夜',
     crop: {
       messages: PRIVATE_CHAT_FULL_CONTEXT.map((row) => ({
@@ -101,9 +144,10 @@ export const THREE_MIN_NODES: StoryNode[] = [
     kind: 'composer',
     scene: 'home-night',
     tone: 'cold',
-    beat: 'S3 · 输入框',
+    beat: '11/27 · 陈屿侧',
     title: 'S3 · 输入框',
     composer: {
+      sceneNote: '群聊之夜 · 陈屿侧：群里还在刷。你盯着输入框。',
       candidates: [
         '可能有点误会吧……她不是那种人',
         '办公室的事我听到了 她是在帮予安你要名字……',
@@ -120,8 +164,8 @@ export const THREE_MIN_NODES: StoryNode[] = [
     kind: 'narration',
     scene: 'classroom-cold',
     tone: 'cold',
-    beat: 'S4 · 小满求助向',
-    title: 'S4 · 12/8 · 小满的求助向',
+    beat: '12/8 · 办公室门口',
+    title: 'S4 · 小满的求助',
     text: '12/8。最后几天。小满站在办公室门口。',
     options: [
       {
@@ -146,8 +190,8 @@ export const THREE_MIN_NODES: StoryNode[] = [
     kind: 'narration',
     scene: 'classroom-cold',
     tone: 'cold',
-    beat: 'S4 · 予安三岔',
-    title: 'S4 · 12/12 · 予安的责任选择',
+    beat: '12/12 · 竞选答辩前',
+    title: 'S4 · 予安的责任选择',
     text: '12/12。竞选答辩前。予安看着手里的讲稿。',
     options: [
       {
@@ -179,8 +223,8 @@ export const THREE_MIN_NODES: StoryNode[] = [
     kind: 'narration',
     scene: 'classroom-cold',
     tone: 'cold',
-    beat: 'S4 · 陈屿行动',
-    title: 'S4 · 12/11 · 陈屿的行动',
+    beat: '12/11 · 班会前',
+    title: 'S4 · 陈屿的行动',
     text: '12/11。班会前的最后一个放学后。陈屿翻开速写本。',
     options: [
       {

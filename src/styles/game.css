@@ -209,6 +209,15 @@
   box-shadow: 0 8px 0 var(--panel-edge);
 }
 
+.message-composer__scene {
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink-dim);
+  background: #1c1c30;
+  border-left: 3px solid var(--accent);
+}
+
 .message-composer__candidates {
   display: flex;
   flex-direction: column;
@@ -779,6 +788,23 @@
   text-align: left;
   background: transparent;
   border: none;
+  cursor: pointer;
+}
+
+.crop-night__row:hover .crop-night__bubble,
+.crop-night__row:focus-visible .crop-night__bubble {
+  border-color: var(--accent);
+  background: #3b3b5e;
+}
+
+.crop-night__row--right:hover .crop-night__bubble,
+.crop-night__row--right:focus-visible .crop-night__bubble {
+  background: #47695a;
+}
+
+.crop-night__row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .crop-night__row--right {

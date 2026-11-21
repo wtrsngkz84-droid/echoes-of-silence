@@ -104,6 +104,8 @@ export interface CallContent {
 
 /** 输入框发送/删除（C3-002） */
 export interface ComposerContent {
+  /** 输入框上方的场景说明（谁/在哪/发到哪） */
+  sceneNote?: string;
   candidates: string[];
   sendEffects?: FlagPatch;
   deleteEffects?: FlagPatch;

@@ -50,7 +50,7 @@ export function CropNight({ content, onComplete }: CropNightProps) {
           <div>
             <div className="crop-night__title">裁剪之夜</div>
             <div className="crop-night__sub">
-              {phase === 'select' ? '长按任意一条消息，把要发出去的部分框起来' : '图已截好'}
+              {phase === 'select' ? '点击任意一条消息截图' : '图已截好'}
             </div>
           </div>
           {phase === 'select' && (
