@@ -141,7 +141,7 @@ export function GameScreen() {
 
   return (
     <div
-      className="game-root"
+      className={`game-root${showChoices ? ' has-choices' : ''}`}
       data-tone={node.tone ?? 'neutral'}
       data-node-id={node.id}
       onClick={primary}
@@ -189,46 +189,48 @@ export function GameScreen() {
         </div>
       )}
 
-      {node.kind === 'chat' ? (
-        <PhoneChat
-          run={run}
-          node={node}
-          onChatNext={game.chatNext}
-          onOpenScreenshot={setViewerContent}
-        />
-      ) : node.kind === 'composer' && node.composer ? (
-        <MessageComposer
-          sceneNote={node.composer.sceneNote}
-          candidates={node.composer.candidates}
-          onSend={(text) => game.resolveComposer('send', text)}
-          onDelete={(text) => game.resolveComposer('delete', text)}
-        />
-      ) : node.kind === 'call' && node.call ? (
-        <PhoneCall call={node.call} />
-      ) : node.kind === 'crop' && node.crop ? (
-        <CropNight content={node.crop} onComplete={game.advance} />
-      ) : node.kind === 'reasoning' && node.reasoning ? (
-        <ReasoningPanel
-          content={node.reasoning}
-          clues={visibleReasoningClues(run, node.reasoning)}
-          onSolved={game.solveReasoning}
-        />
-      ) : node.kind === 'checklist' && node.checklist ? (
-        <DutyChecklist content={node.checklist} onSubmit={game.submitChecklist} />
-      ) : node.kind === 'typing' && node.typing ? (
-        <TypingDelete effect={node.typing} onDone={() => setTypingDone(true)} />
-      ) : node.kind === 'summary' ? (
-        <ChapterSummary run={run} onContinue={game.advance} />
-      ) : (
-        <DialogueBox
-          speaker={node.speaker}
-          isInner={node.kind === 'inner'}
-          text={typer.shownText}
-          showHint={typer.done && options.length === 0 && canAdvance(run, node)}
-        />
-      )}
+      <div className={`game-bottom${showChoices ? ' game-bottom--choices' : ''}`}>
+        {node.kind === 'chat' ? (
+          <PhoneChat
+            run={run}
+            node={node}
+            onChatNext={game.chatNext}
+            onOpenScreenshot={setViewerContent}
+          />
+        ) : node.kind === 'composer' && node.composer ? (
+          <MessageComposer
+            sceneNote={node.composer.sceneNote}
+            candidates={node.composer.candidates}
+            onSend={(text) => game.resolveComposer('send', text)}
+            onDelete={(text) => game.resolveComposer('delete', text)}
+          />
+        ) : node.kind === 'call' && node.call ? (
+          <PhoneCall call={node.call} />
+        ) : node.kind === 'crop' && node.crop ? (
+          <CropNight content={node.crop} onComplete={game.advance} />
+        ) : node.kind === 'reasoning' && node.reasoning ? (
+          <ReasoningPanel
+            content={node.reasoning}
+            clues={visibleReasoningClues(run, node.reasoning)}
+            onSolved={game.solveReasoning}
+          />
+        ) : node.kind === 'checklist' && node.checklist ? (
+          <DutyChecklist content={node.checklist} onSubmit={game.submitChecklist} />
+        ) : node.kind === 'typing' && node.typing ? (
+          <TypingDelete effect={node.typing} onDone={() => setTypingDone(true)} />
+        ) : node.kind === 'summary' ? (
+          <ChapterSummary run={run} onContinue={game.advance} />
+        ) : (
+          <DialogueBox
+            speaker={node.speaker}
+            isInner={node.kind === 'inner'}
+            text={typer.shownText}
+            showHint={typer.done && options.length === 0 && canAdvance(run, node)}
+          />
+        )}
 
-      {showChoices && <ChoiceList options={options} onSelect={game.choose} />}
+        {showChoices && <ChoiceList options={options} onSelect={game.choose} />}
+      </div>
 
       {viewerContent && (
         <ScreenshotViewer content={viewerContent} onClose={() => setViewerContent(null)} />
