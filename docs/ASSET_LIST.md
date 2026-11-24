@@ -1,0 +1,81 @@
+# ASSET_LIST — 美术资源需求清单（P4 交付）
+
+> 版本：V0.1（2026-11-21，视觉一档改善启动）
+> 撰写：产品经理 / 剧情策划（队友 Qoder）
+> 关联：T-P4-1；替换对象 = `src/components/stage/PixelAvatar.tsx`（12×12 程序化占位）与 `src/components/stage/SceneBackground.tsx`（CSS 装饰）；风格样板见 `docs/asset-samples/`。
+
+## 1. 目标与原则
+
+- 把全部程序化占位（方块脸立绘、CSS 几何背景）替换为**正式像素素材**；组件对外接口不变（PixelAvatar 保持 `character/size` props，SceneBackground 保持 `scene` key）。
+- 风格基线：16-bit 像素风、有限色板、光感克制、无写实纹理；冷/暖色调跟随章节基调（STORY_FLOW 各章「渲染基调」）。
+- 生成方式不限（ImageGen / 手绘 / 素材站授权），但**必须同风格连作**；中文字一律不烧进图片（由 UI 文本层渲染，避免字形不可控）。
+- 性能红线：全部新增素材压缩后合计 ≤ 2 MB；无图/加载失败时回退现有 CSS 占位（开发保证）。
+
+## 2. 角色立绘（6 张）
+
+> **风格样板**：`docs/asset-samples/` 内三张参考图（`xiaoman.png` 立绘 / `classroom-warm.png` 场景 / `meme-template.png` 表情包模板）为 2026-11-21 生成，作为同风格连作的锚点；注意两点：①样板右下角带生成平台的「AI生成」角标（平台强制），**正式素材接入前必须裁除或重绘干净版本**；②表情包模板中的人物发型为马尾，正式版需改为与林小满一致（齐耳短发）。
+> 样板图仅作参考，不进入应用构建产物。
+
+规格：**768×1024 PNG**（3:4 胸像，腰部以上），纯色深底（`#1e1b2e`，便于叠加/裁切），或透明底优先。
+配色必须取自 `src/story/characters.ts` 的 palette：
+
+| 角色 | 文件 | 造型要点 | 色调 |
+| --- | --- | --- | --- |
+| 林小满 | `characters/xiaoman.png` | 13 岁女生，齐耳短发+旧发卡，蓝白校服，抱蓝色帆布包（或包带在肩），安静、视线略向下 | 冷蓝灰（#7d92a8 主） |
+| 周予安 | `characters/yuan.png` | 高马尾、校服袖口卷起、学生会徽章，姿态挺拔，明亮的笑里带用力 | 暖橙（#e8a04b 主） |
+| 陈屿 | `characters/chenyu.png` | 普通短发，连帽卫衣套校服外，抱速写本，肩膀收拢、眼神观察 | 灰蓝（#6b7f8c 主） |
+| 郑晓芸 | `characters/zhengxiaoyun.png` | 齐肩发+发圈，笑得很甜，手里转着笔 | 粉紫（#a86b8c 主） |
+| 李老师 | `characters/liteacher.png` | 32 岁左右女性教师，简约衬衫+针织开衫，抱着教案，温和 | 暖褐绿（#8c7a5d 主） |
+| 妈妈 | `characters/mom.png` | 护士，外套+便装，眼下有夜班的疲惫，手里拎着早饭 | 灰蓝绿（#7a8c9d 主） |
+
+## 3. 场景背景（5 张）
+
+规格：**1536×1024 PNG**（3:2；舞台按 cover 裁切），像素风平视构图，画面中下部留给对话框、右侧中部留立绘位。
+
+| 场景 key | 文件 | 内容 | 色调 |
+| --- | --- | --- | --- |
+| `classroom` | `scenes/classroom-warm.png` | 教室：黑板、讲台、两列窗户暖阳、课桌纵列（第一章 11/26 暖基调） | 暖黄 |
+| `classroom-cold` | `scenes/classroom-cold.png` | 同一教室的冷版本：阴天冷光、空座位区可见（缺椅/椅影） | 冷灰蓝 |
+| `classroom-afternoon` | `scenes/classroom-afternoon.png` | 傍晚的教室：夕照橙、光从窗斜切、桌椅影子拉长（图书角在近处） | 暮橙+冷影 |
+| `hallway` | `scenes/hallway.png` | 教学楼走廊：门牌、公告栏（可含 A4 纸张质感）、窗外树影 | 中性灰 |
+| `home-night` | `scenes/home-night.png` | 夜晚房间：书桌台灯、床沿、窗外路灯（三种角色共用，家具中性化） | 夜蓝紫+台灯暖点 |
+
+（`canteen` key 现存未使用，不产出。）
+
+## 4. 表情包（2 张，剧情内消息）
+
+规格：**512×512 PNG**，画面为「偷拍的像素照片」质感（低清、噪点、构图歪），**文字由 UI 叠加不烧图**：
+- `meme/meme-1.png`：课间低头写字的女生背影/侧影（打码或看不清脸）
+- `meme/meme-2.png`：同一张图变体（可加一层裁切/贴纸感）
+- UI 配字（代码层）：第一张「又在偷偷写报告呢」、第二张「报告都是我写的哦」。
+
+## 5. 结局插画（5 张，加分项）
+
+规格：**1200×675 PNG**（16:9），空椅子主题；用于 EndingScreen 卡面顶部（可选实现）：
+- E1 `endings/e1.png`：空椅子+被划掉名字的值日表（冷）
+- E2 `endings/e2.png`：教室正常但椅子少一把（灰）
+- E3 `endings/e3.png`：帆布包放回桌面、手机亮着「妈」（暖灰）
+- E4 `endings/e4.png`：被揭下的海报一角+完整记录截图（暖）
+- E5 `endings/e5.png`：贴满便签的匿名道歉墙+坐回椅子（暖亮）
+
+## 6. 分享卡（B 项顺手做）
+
+- `share/og-cover.png`：**1200×630**，标题「沉默的回声 Echoes of Silence」+ 空椅子主视觉（文字烧图可接受，中文用思源黑体渲染）；配套页面 `<meta property="og:title/description/image">`。
+
+## 7. 目录与集成点（给开发）
+
+- 建议目录：`public/assets/{characters,scenes,meme,endings,share}/`（静态直出，文件名全小写连字符）。
+- 集成：
+  - `PixelAvatar` → `<img src=... alt={角色名}>`，保持 `size` 控制显示尺寸（像素化渲染 `image-rendering: pixelated`）；缺图回退当前网格。
+  - `SceneBackground` → 按 `SceneKey` 映射 `<img>`；`tone-overlay` 保留不动；缺图回退现有 CSS 装饰。
+  - 表情包：`ChatMessage.kind='image'` 扩展支持 `src` 字段渲染真实图片（现为文字占位）。
+  - 结局插画（如做）：EndingScreen 卡面顶部 16:9 图，缺图不显示。
+- 压缩：pngquant / oxipng 过一遍；总增量 ≤ 2MB；三档视口（390/768/1440）视觉回归后重新发布。
+
+## 8. 验收清单
+
+- [ ] 6 立绘 + 5 场景 + 2 表情包接入，无一处仍显示程序化方块脸
+- [ ] 三档视口截图对照（暖/冷两张场景至少各一张）
+- [ ] 总增量 ≤ 2MB，LCP 不劣化；缺图回退可用
+- [ ] 表情包消息在群聊流内正确显示 + 点击行为不回归
+- [ ] 重新发布 Qoder Sites 并给公开链接状态
