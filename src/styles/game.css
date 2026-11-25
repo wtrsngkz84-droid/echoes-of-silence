@@ -471,6 +471,41 @@
   text-align: center;
 }
 
+.chat-msg__image--photo {
+  position: relative;
+  width: 150px;
+  height: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  display: block;
+  text-align: left;
+  color: var(--ink);
+}
+
+.chat-msg__image-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  border: 2px solid var(--panel-edge);
+  box-shadow: 0 3px 0 var(--panel-edge);
+}
+
+.chat-msg__image-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 3px 4px;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
+  color: #fff;
+  background: rgba(10, 8, 16, 0.72);
+}
+
 /* 聊天截图：消息内直接呈现原始聊天画面；点击进入查看器（GAMEPLAY_DESIGN §3.2） */
 .chat-msg__screenshot {
   width: 216px;

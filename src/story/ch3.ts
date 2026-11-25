@@ -283,12 +283,40 @@ export const CH3_NODES: StoryNode[] = [
   {
     id: 'C3-003',
     chapter: 'ch3',
-    kind: 'narration',
+    kind: 'chat',
     scene: 'classroom-cold',
     tone: 'cold',
     beat: '沉默的记账 11/28',
     title: '11/28 · 周六',
-    text: '小满的表情包在传播（配字「又在偷偷写报告呢」「报告都是我写的哦」）。\n要不要把表情包转进兄弟小群？',
+    chatTitle: '初二3班大本营',
+    messages: [
+      {
+        id: 'C3-003-m1',
+        side: 'system',
+        text: '小满的表情包在传播（配字「又在偷偷写报告呢」「报告都是我写的哦」）。',
+      },
+      {
+        id: 'C3-003-m2',
+        side: 'left',
+        kind: 'image',
+        src: 'assets/meme/meme-1.png',
+        imageCaption: '表情包',
+        text: '又在偷偷写报告呢',
+      },
+      {
+        id: 'C3-003-m3',
+        side: 'left',
+        kind: 'image',
+        src: 'assets/meme/meme-2.png',
+        imageCaption: '表情包',
+        text: '报告都是我写的哦',
+      },
+      {
+        id: 'C3-003-m4',
+        side: 'system',
+        text: '要不要把表情包转进兄弟小群？',
+      },
+    ],
     options: [
       {
         id: 'C3-003-O1',

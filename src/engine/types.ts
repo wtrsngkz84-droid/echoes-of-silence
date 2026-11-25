@@ -187,8 +187,10 @@ export interface ChatMessage {
   /** 消息内时间戳，如 "12:10" */
   time?: string;
   kind?: 'text' | 'image' | 'screenshot';
-  /** kind=image 时的占位图说明（正式像素资源到位后替换） */
+  /** kind=image 时的占位图说明（无 src 时回退显示） */
   imageCaption?: string;
+  /** kind=image 时的图片路径（相对 public 根） */
+  src?: string;
   /** kind=screenshot 时的截图内容 */
   screenshot?: ScreenshotContent;
   /** 条件消息：不满足时该消息不播放（群聊变体演出用） */

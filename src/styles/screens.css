@@ -348,6 +348,19 @@
   text-align: center;
 }
 
+.ending-card__art {
+  margin-bottom: 4px;
+  border: 3px solid var(--panel-edge);
+  box-shadow: 0 4px 0 var(--panel-edge);
+}
+
+.ending-card__art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
 .ending-card__label {
   font-size: 13px;
   letter-spacing: 0.5em;

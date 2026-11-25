@@ -73,6 +73,15 @@
   height: 100%;
 }
 
+.pixel-art-img {
+  display: block;
+  width: auto;
+  max-width: none;
+  image-rendering: pixelated;
+  border: 3px solid var(--panel-edge);
+  box-shadow: 0 6px 0 var(--panel-edge), 0 0 0 3px #2b2b40;
+}
+
 /* 硬阴影像素分隔线 */
 .pixel-rule {
   height: 0;

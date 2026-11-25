@@ -5,18 +5,35 @@ import { PixelButton } from '../ui/PixelButton';
 import { EndingGallery } from './EndingGallery';
 import '../../styles/screens.css';
 
+const ENDING_ART = import.meta.glob('../../assets/endings/*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+
+function endingArtFor(id: string): string | undefined {
+  return ENDING_ART[`../../assets/endings/${id.toLowerCase()}.png`];
+}
+
 /** 结局卡：endingId 由引擎按 GAMEPLAY_DESIGN §7.1 判定矩阵求值后进入此屏 */
 export function EndingScreen() {
   const { state, backToTitle, startRun } = useGame();
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const [artFailed, setArtFailed] = useState(false);
   const ending = state.endingId ? ENDINGS[state.endingId] : null;
   const isThreeMin = state.run?.chapter === '3min';
+  const art = ending ? endingArtFor(ending.id) : undefined;
 
   if (!ending) return null;
 
   return (
     <div className="ending-screen">
       <div className="ending-card pixel-panel">
+        {art && !artFailed && (
+          <div className="ending-card__art">
+            <img src={art} alt="" onError={() => setArtFailed(true)} />
+          </div>
+        )}
         <div className="ending-card__label">回 声 落 定</div>
         <h2 className={`ending-card__name ending-card__name--${ending.tone}`}>{ending.name}</h2>
         <p className="ending-card__desc">{ending.description}</p>

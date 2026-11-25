@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { CharacterDef } from '../../engine/types';
 
 /**
- * 占位像素立绘：12×12 数据驱动网格。
- * 正式像素资源（ASSET_LIST）到位后，本组件替换为 <img> 即可，调用方接口不变。
+ * 角色立绘：优先使用 public/assets/characters 的正式像素图；
+ * 无对应文件或加载失败时回退 12×12 数据驱动网格。
  */
 
 const AVATAR_ROWS = [
@@ -23,7 +24,33 @@ const AVATAR_ROWS = [
 
 const EYE = '#241f33';
 
+const PORTRAIT_FILE: Record<string, string> = {
+  xiaoman: 'xiaoman.png',
+  yuAn: 'yuan.png',
+  chenyu: 'chenyu.png',
+  zhengXiaoyun: 'zhengxiaoyun.png',
+  liTeacher: 'liteacher.png',
+  mom: 'mom.png',
+};
+
 export function PixelAvatar({ character, size = 120 }: { character: CharacterDef; size?: number }) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const file = PORTRAIT_FILE[character.id];
+  const src = file ? `${import.meta.env.BASE_URL}assets/characters/${file}` : null;
+
+  if (src && failedSrc !== src) {
+    return (
+      <img
+        className="pixel-art-img"
+        src={src}
+        alt={character.name}
+        draggable={false}
+        style={{ height: `${size}px` }}
+        onError={() => setFailedSrc(src)}
+      />
+    );
+  }
+
   const colorOf = (code: string): string | null => {
     switch (code) {
       case 'H':

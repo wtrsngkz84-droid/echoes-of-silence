@@ -15,6 +15,8 @@ import type { RunState, ScreenshotContent, StoryNode } from '../../engine/types'
 import { CHARACTERS } from '../../story/characters';
 import '../../styles/game.css';
 
+const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`;
+
 interface PhoneChatProps {
   run: RunState;
   node: StoryNode;
@@ -71,6 +73,12 @@ export function PhoneChat({ run, node, onChatNext, onOpenScreenshot }: PhoneChat
     onOpenScreenshot(content);
   };
 
+  const scrollToBottomIfSticky = () => {
+    const el = bodyRef.current;
+    if (!el || !stickToBottomRef.current) return;
+    el.scrollTop = el.scrollHeight;
+  };
+
   return (
     <div className="phone-chat" aria-label={`聊天窗口：${node.chatTitle ?? ''}`}>
       <div className="phone-chat__head">
@@ -92,12 +100,14 @@ export function PhoneChat({ run, node, onChatNext, onOpenScreenshot }: PhoneChat
           const character = msg.sender ? CHARACTERS[msg.sender] : undefined;
           return (
             <div key={msg.id} className={`chat-msg chat-msg--${msg.side}`}>
-              <span
-                className="chat-msg__sender"
-                style={character ? { color: character.themeColor } : undefined}
-              >
-                {characterName(msg.sender)}
-              </span>
+              {msg.sender && (
+                <span
+                  className="chat-msg__sender"
+                  style={character ? { color: character.themeColor } : undefined}
+                >
+                  {characterName(msg.sender)}
+                </span>
+              )}
               {msg.kind === 'screenshot' && msg.screenshot ? (
                 <div
                   className="chat-msg__screenshot"
@@ -137,11 +147,24 @@ export function PhoneChat({ run, node, onChatNext, onOpenScreenshot }: PhoneChat
                   </div>
                 </div>
               ) : msg.kind === 'image' ? (
-                <div className="chat-msg__image">
-                  {msg.imageCaption ?? '【图片】'}
-                  <br />
-                  {msg.text}
-                </div>
+                msg.src ? (
+                  <div className="chat-msg__image chat-msg__image--photo">
+                    <img
+                      className="chat-msg__image-img"
+                      src={assetUrl(msg.src)}
+                      alt={msg.text}
+                      draggable={false}
+                      onLoad={scrollToBottomIfSticky}
+                    />
+                    <span className="chat-msg__image-caption">{msg.text}</span>
+                  </div>
+                ) : (
+                  <div className="chat-msg__image">
+                    {msg.imageCaption ?? '【图片】'}
+                    <br />
+                    {msg.text}
+                  </div>
+                )
               ) : (
                 <div className="chat-msg__bubble">{msg.text}</div>
               )}

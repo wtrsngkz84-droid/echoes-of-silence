@@ -565,12 +565,35 @@ export const CH2_NODES: StoryNode[] = [
   {
     id: 'C2-006',
     chapter: 'ch2',
-    kind: 'narration',
+    kind: 'chat',
     scene: 'classroom',
     tone: 'warm',
     beat: '失控蒙太奇 11/28',
     title: '11/28 · 周六',
-    text: '有匿名同学用小满课间低头写字的偷拍照做了表情包，配字「又在偷偷写报告呢」「报告都是我写的哦」，在班级群和几个小群流传。她刷到的时候，愣了很久。',
+    chatTitle: '初二3班大本营',
+    messages: [
+      {
+        id: 'C2-006-m1',
+        side: 'system',
+        text: '有匿名同学用小满课间低头写字的偷拍照做了表情包，配字「又在偷偷写报告呢」「报告都是我写的哦」，在班级群和几个小群流传。她刷到的时候，愣了很久。',
+      },
+      {
+        id: 'C2-006-m2',
+        side: 'left',
+        kind: 'image',
+        src: 'assets/meme/meme-1.png',
+        imageCaption: '表情包',
+        text: '又在偷偷写报告呢',
+      },
+      {
+        id: 'C2-006-m3',
+        side: 'left',
+        kind: 'image',
+        src: 'assets/meme/meme-2.png',
+        imageCaption: '表情包',
+        text: '报告都是我写的哦',
+      },
+    ],
     options: [
       {
         id: 'C2-006-O1',

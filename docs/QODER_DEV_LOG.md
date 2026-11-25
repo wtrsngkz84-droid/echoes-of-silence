@@ -3,6 +3,36 @@
 > 本文件记录真实工作状态，供两位成员的 Qoder 在新会话恢复上下文。  
 > 记录“已经做了什么、验证了什么、还差什么”；计划不等于完成，未运行不等于通过。
 
+## 2026-11-22 — 视觉一档：正式像素素材产出、接入与重新发布（开发负责人）
+
+- 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。
+- 起始分支与基线提交：main @ `67a0207`（ASSET_LIST V0.1 + 三张风格样板）。
+- 任务目标与关联需求：P4 视觉一档——按 `docs/ASSET_LIST.md` 产出 6 立绘 / 5 场景 / 2 表情包并替换程序化占位；组件接口不变；缺图回退；总增量 ≤2MB；三档视口回归；重新发布 Qoder Sites 并给前后对照截图。
+- 素材产出（`public/assets/`，13 个 PNG，合计 **1,977,842 bytes / 1.89 MiB**）：
+  - `characters/`：xiaoman / yuan / chenyu / zhengxiaoyun / liteacher / mom，均 768×1024。以 xiaoman 样板为风格锚；Yu An 与郑晓芸初稿被样板带到同款发卡/帆布包，已用图生图移除；郑晓芸改为齐肩发+黄色发圈。
+  - `scenes/`：classroom-warm / classroom-cold / classroom-afternoon / hallway / home-night，均 1536×1024。classroom-warm 直接使用样板并用邻近地板补丁去除右下「AI生成」角标；其余 4 张以样板为参考连作。
+  - `meme/`：meme-1 / meme-2，512×512，偷拍低清质感；两张均为齐耳短发；UI 文案（「又在偷偷写报告呢」「报告都是我写的哦」）不烧图。
+  - 所有素材中文不烧图、无可见生成角标；压缩因环境无 pngquant/oxipng，改用 Pillow 调色板量化（立绘 40 色、场景 32 色、表情包 32 色，无抖动）+ optimize。
+  - 加分项：5 张结局插画已生成并压缩为预览（`release-assets/26–30-ending-e*-preview.png`），但接入会突破 2MB 红线，本次**不纳入构建**；分享卡未产出。
+- 集成变更：
+  - `src/components/stage/PixelAvatar.tsx`：优先 `<img>`（`assets/characters/{id}.png`，高度由 `size` 控制），无映射或加载失败回退 12×12 网格；`src/styles/pixel.css` 增加 `image-rendering: pixelated` 与像素边框。
+  - `src/components/stage/SceneBackground.tsx`：按 SceneKey 映射 5 张场景图（`object-fit: cover`），`tone-overlay` 保留；缺图/失败回退原 CSS 装饰；`src/styles/scene.css` 增加 `.scene__img`。
+  - `src/engine/types.ts`：`ChatMessage` 增加可选 `src`；`src/components/chat/PhoneChat.tsx` 渲染图片 + UI 叠字，加载完成后自动吸底；无 sender 的消息不再渲染空名牌；`src/styles/game.css` 增加表情包图片/文案样式。
+  - `src/story/ch2.ts` C2-006、`src/story/ch3.ts` C3-003：由 `narration` 改为 `chat` 演出承载两张表情包；原描述文本拆为 system 消息、选项/效果/goto 逐字保留。
+  - `src/components/screens/EndingScreen.tsx` + `src/styles/screens.css`：预留可选插画位，构建期 `import.meta.glob('../../assets/endings/*.png')`，缺图不渲染。
+  - 文档：TECHNICAL.md v0.10.0、README.md、本日志；`release-assets/13–20` 为前后对照，`21–25` 为表情包/三档补充，`26–30` 为结局预览。
+- 验证方法、命令或游玩步骤：
+  - `npm test`；`npm run build`。
+  - 无头 Chrome（390×844 / 768×1024 / 1440×900，公网新版本）：6 立绘、5 场景、2 表情包均加载成功（自然尺寸正确）；C1-021 立绘+对话无重叠；C2-006/C3-003 表情包与 UI 文案正确、聊天窗吸底、390px 对话/选项重叠为 0；C1-008/C1-003/C2-082/C1-005 的午后/走廊/冷教室/夜房间场景均加载；无横向滚动。
+  - 缺图回退：CDP 屏蔽 `assets/characters/*` 与 `assets/scenes/*` 后，C1-021 回退 12×12 网格与 CSS 场景装饰，页面无残留破图。
+  - 公网校验：`index-BWpPf4VP.js` / `index-uog8byxe.css`，以及 liteacher/classroom-warm/meme-1 的 SHA256 与本地 `dist` 完全一致；控制台零报错。
+- 实际结果：通过。**100/100** 测试；build 成功（JS gzip 115.37 KB、CSS 7.11 KB）；素材 13 个共 1,977,842 bytes（1.89 MiB，≤2MB）；公网 `published: true`、公开可访问。
+- 发布记录：actionId `0d61b33b-4331-43aa-8acd-8324e526a941`；deploymentId `01a210ee-f802-7de2-b8fc-ebfbc482cd66`；releaseId `01a210ef-757a-7f13-b198-795bd817e22c`；描述文件由 Sites 工具写回。
+- 未解决问题、风险与依赖：可选结局插画未接入（需体积预算决策；预览已存）；分享卡/OG meta 未做；像素字库仍占位；桌面 1440 的聊天+选项既有绝对定位重叠未在本次范围内调整（与旧版一致）；U-009 与 3 分钟真人计时仍待产品侧。
+- 新决策编号或待确认提案：无新增；未改产品文档。
+- 下一步及接手角色：产品侧按 `release-assets/13–20` 做前后对照、按 `21–25` 复验表情包与移动端；开发待命处理视觉反馈或结局插画预算决策。
+- 提交 / PR 链接：本条与上述源码、素材、截图、描述文件、文档作为单条提交推送 main；哈希以仓库 Git 历史为准。
+
 ## 2026-11-22 — 移动端对话/选项布局修复 + 一次性重新发布（开发负责人）
 
 - 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。
