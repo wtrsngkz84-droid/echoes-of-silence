@@ -1,6 +1,6 @@
 # TECHNICAL — 《沉默的回声》技术架构说明
 
-> 维护人：开发 / 技术负责人。版本：v0.10.0。日期：2026-11-22。
+> 维护人：开发 / 技术负责人。版本：v0.10.1。日期：2026-11-25。
 > 本文件描述实际实现的架构、数据接口、状态变量、存档方案与验证方式。
 > 重大架构变更必须更新本文件并在 docs/QODER_DEV_LOG.md 留痕。
 > v0.2：对齐 P-014（GAMEPLAY_DESIGN §7.1 五结局判定矩阵 + v_* 数值变量 + EV 证据编号）。
@@ -18,6 +18,7 @@
 > v0.9.2：身份提示审计修复——`TypingEffect.label`（C1-063「给妈妈」/C2-083「给小满」，缺省「输入框」）、C3-021 输入框场景说明、裁剪 `headerNote`（C2-004 / 3min S2）、C2-004 全量错误反馈、C3-007 班会副行「教室 · 你的座位」。
 > v0.9.3：移动端布局修复——390px 竖屏对话/聊天与选项上下堆叠、台词限高内部滚动、选项按剩余空间滚动；桌面 `display: contents` 无回归。身份提示 6 项与本次布局修复已一次性重新发布。
 > v0.10.0：视觉一档——6 立绘 / 5 场景 / 2 表情包接入（缺图回退），表情包两处剧情点改为 chat 演出，EndingScreen 预留可选插画位；素材合计 1.89 MiB（≤2MB），公网重新发布。
+> v0.10.1：桌面重叠修复 + 结局插画接入——有选项时 390/768/1440 统一上下堆叠；5 张结局插画接入 `public/assets/endings/` 并启用 EndingScreen 插画位；素材合计 2.20 MiB（≤2.5MB），公网重新发布。
 
 ## 1. 技术栈与运行方式
 
@@ -42,15 +43,15 @@ npm run preview    # 本地预览构建产物
 
 - 线上地址：<https://echoes-of-silence-rwx94cwcoxm.qoder.zone>（Qoder Sites，公开访问、无需登录；完整版 + 3 分钟体验双入口）。作品要求在 Qoder Sites 公网部署，`dist/` 同时可托管于任意静态服务器。
 - `vite.config.ts` 使用 `base: './'`，构建产物全部为相对资源，可直接放在任意子路径；`index.html` 单入口，无路由依赖，静态刷新返回 200。
-- 发布方式：`npm run build` → 将 `dist/` 交给 Qoder Sites / 静态托管；v0.10.0 发布的 `dist` 与线上 asset 哈希一致（`index-BWpPf4VP.js` / `index-uog8byxe.css`，SHA256 逐一比对相同）。
-- 构建体积基线（gzip）：JS 115.37 KB、CSS 7.11 KB、HTML 0.47 KB。
-- 视觉素材体积：`public/assets/` 13 个 PNG 合计 1,977,842 bytes（1.89 MiB），满足 ≤2MB 红线。
+- 发布方式：`npm run build` → 将 `dist/` 交给 Qoder Sites / 静态托管；v0.10.1 发布的 `dist` 与线上 asset 哈希一致（`index-CXAgtL7_.js` / `index-CCoQuU-T.css`，SHA256 逐一比对相同）。
+- 构建体积基线（gzip）：JS 115.37 KB、CSS 7.20 KB、HTML 0.47 KB。
+- 视觉素材体积：`public/assets/` 18 个 PNG 合计 2,311,560 bytes（2.20 MiB），满足 ≤2.5MB 红线。
 
 ### 终端适配与设计变量（v0.9）
 
 - 舞台保持 16:9；竖屏且宽度 ≤900px 时改为全视口（`100vw × 100vh`），避免 390px 手机竖屏下舞台过矮、标题与按钮被裁。
 - 560px / 720px 两档媒体查询压缩顶栏、聊天窗与选项列表；竖屏下聊天窗与选项分别限高并可内部滚动，避免遮挡。
-- 390px 竖屏下，对话/聊天与选项由绝对定位改为底部上下堆叠（`.game-bottom--choices`）：台词区限高并内部滚动，选项列表按剩余空间收缩/滚动；桌面端 `.game-bottom { display: contents }` 保持原布局。
+- 有选项时，所有视口（含 1440 桌面）统一在底部上下堆叠（`.game-bottom--choices`）：对话/聊天正文在上、选项在下，正文限高并内部滚动，选项列表按剩余空间收缩/滚动；无选项时 `.game-bottom { display: contents }` 保持原绝对定位。390px 竖屏额外压缩宽度与高度。
 - 设计变量收敛在 `base.css` 的 `--site-*`（bg/fg/accent/surface/muted/border/font/radius/space/type/motion），并别名到原有 `--bg-page/--ink/...`；组件只用变量消费，便于统一调参。
 
 ## 2. 三层架构（B-003：剧情数据与引擎分离）
@@ -179,8 +180,8 @@ interface NodeVariant {
 - `public/assets/characters/`：6 张 768×1024 立绘（`xiaoman.png` / `yuan.png` / `chenyu.png` / `zhengxiaoyun.png` / `liteacher.png` / `mom.png`）。`PixelAvatar` 优先渲染 `<img>`（高度由 `size` 控制、`image-rendering: pixelated`），无对应文件或加载失败时回退 12×12 数据网格。
 - `public/assets/scenes/`：5 张 1536×1024 场景（`classroom-warm.png` / `classroom-cold.png` / `classroom-afternoon.png` / `hallway.png` / `home-night.png`）。`SceneBackground` 按 `SceneKey` 映射 `<img>`（`object-fit: cover`），`tone-overlay` 保留；缺图或加载失败回退原 CSS 装饰。
 - `public/assets/meme/`：2 张 512×512 表情包。`ChatMessage` 增加可选 `src`；`kind='image'` 且有 `src` 时渲染图片并在底部叠加 UI 文案（不烧图）。C2-006 与 C3-003 由 `narration` 改为 `chat` 演出以承载表情包，原描述文本与选项逐字保留；图片加载完成后若聊天窗处于吸底状态会自动滚到底部。
-- 结局插画位：`EndingScreen` 通过构建期 `import.meta.glob('../../assets/endings/*.png')` 读取可选插画，缺图不渲染；本次未接入（见 §7）。
-- 压缩：环境无 pngquant/oxipng，使用 Pillow 调色板量化（立绘 40 色、场景 32 色、表情包 32 色，无抖动）+ `optimize`；13 个文件合计 1,977,842 bytes。
+- `public/assets/endings/`：5 张 800×450 结局插画（`e1.png`～`e5.png`）。`EndingScreen` 按 endingId 映射并在卡面顶部渲染，预留 `onError` 隐藏；缺图不显示。
+- 压缩：环境无 pngquant/oxipng，使用 Pillow 调色板量化（立绘 40 色、场景 32 色、表情包/结局 32 色，无抖动）+ `optimize`；18 个文件合计 2,311,560 bytes。
 
 **章末小结**（`kind: 'summary'`，C1-010）：
 - `ChapterSummary` 读取 `buildChapterSummary(run.flags)` 的纯函数结果，渲染条件摘要行、倒计时锚与固定引导语。
@@ -246,6 +247,7 @@ interface NodeVariant {
 - 身份提示审计抽查（2026-11-21，构建产物 preview + 存档注入）：C1-063 标签「给妈妈」、C2-083 标签「给小满」、C2-004 头注「11/27 夜 · 予安的手机」且 8 个非目标行逐一有反馈、3min S2-001 同头注、C3-021 场景说明、C3-007 副行「教室 · 你的座位」；控制台零报错。
 - 移动端布局抽查（2026-11-22，无头 Chrome 390×844，公网发布后复测）：C1-021 对话/选项重叠 164→0px、C1-005 聊天/选项 197→0px、C1-009 行动窗口 237→0px、C3-006 价格行动窗口 237→0px；长台词 `clientHeight 228 / scrollHeight 1469`（限高内部滚动）；推理 C2-066/C3-054 与清单 C2-086 完整在视口内；无横向滚动。桌面 1440×900 的 C1-005 几何与旧公网快照逐项一致（聊天 x570 y430 300×328、选项 y379–693），无回归。
 - 正式视觉素材抽查（2026-11-22，公网 v0.10.0）：390/768/1440 三档加载 6 立绘、5 场景与 2 表情包均 `complete` 且自然尺寸正确；C1-021 立绘 768×1024 显示 90×118（390）/98×128（1440）；C2-006/C3-003 两张表情包与 UI 文案正确、聊天窗自动吸底、390px 无对话/选项重叠；C1-008/C1-003/C2-082/C1-005 的午后/走廊/冷教室/夜房间场景均加载。屏蔽 `assets/characters/*`、`assets/scenes/*` 后立绘回退网格、场景回退 CSS 装饰。控制台零报错。
+- 桌面重叠修复与结局插画抽查（2026-11-25，公网 v0.10.1）：1440×900 下 C1-021 对话+3 选项重叠 0（对话 410–578、选项 590–823），C2-006 聊天+2 表情包+3 选项重叠 0（聊天 202–578、选项 590–823），C3-006 价格行动窗口 5 选项全部可见；390×844 与 768×1024 回归仍为 0 重叠、无横向滚动。E5 结局卡插画 800×450 正常加载；e1–e5 公网均 200；控制台零报错。
 - M0 审查 3 个 UI 问题修复：530px 顶栏徽章压缩聊天窗（两档 @media 缩小）、聊天窗新消息提示（`● 新消息 ×N · 点击播放`）、结局卡判定输入展示改用引擎 `JUDGEMENT_VARS` 单一来源。另修复：走廊场景装饰「红榜」（v0.1 遗留）改「公告栏」；v0.3 清理 `game.css` 残留 `F-14a` 注释。
 
 ## 7. 当前实现范围与边界
@@ -255,8 +257,8 @@ interface NodeVariant {
 - **M2 P2 已实现**：章节解锁链（完成 ch1 解锁 ch2、ch2 解锁 ch3；标题屏「从章节开始」）、携带重玩（`meta.carriedFlags`，过滤 `v_did_*`）/全新开始、结局画廊（E1–E5 点亮/锁定）、章节回顾（已完成章节 + 证据图鉴 + 结局）；EndingScreen 增加画廊入口，回到标题后可重玩。
 - **FR-13 三分钟路径（v0.8 / v0.9.1）**：标题屏入口 B「3 分钟体验」→ S1 群聊（C1-CP1 四选，每项接 1 条独立后果文本节点）→ S2 CropNight（8 个非目标行全量反馈）→ S3 MessageComposer（`sceneNote` 场景说明）→ S4 三线快切（主/副标题去重）→ S5 同一矩阵结算；全部变量 `3min_` 前缀，存档键 `eos_3min_v1`（version 1），不写完整版 `eos.save.v2`/`eos.meta.v2`；S5 固定「这是完整体验的十分之一 / 完整体验里，你还有十二天。」+ 进入完整体验 / 重新选择 3 分钟。
 - **收尾交付（v0.9）**：三档视口真机自测完成；生产构建通过并已用 Qoder Sites 公网发布（公开访问、匿名可玩）；`dist/` 可直接静态部署。发布素材存于 `release-assets/`（游戏内 3 张 + 过程记录 3 张）。
-- **视觉一档（v0.10.0）**：6 立绘 + 5 场景 + 2 表情包已接入，缺图回退可用；素材合计 1,977,842 bytes（1.89 MiB）。可选结局插画 5 张已生成预览（`release-assets/26–30-ending-*-preview.png`），接入会使总增量超过 2MB，本次未纳入构建；分享卡未产出。像素字库仍为占位。
-- **待实现**：群聊玩家发言深度（PRD-TBD-02）、像素字库、可选结局插画接入（需调整体积预算）、分享卡（OG 图）与 meta、C3-009 的专用尾声数据节点（当前出口由标题/结局屏承担）。
+- **视觉一档（v0.10.1）**：6 立绘 + 5 场景 + 2 表情包 + 5 结局插画已接入，缺图回退可用；素材合计 2,311,560 bytes（2.20 MiB，≤2.5MB）。有选项时 390/768/1440 统一上下堆叠，桌面正文不再被选项覆盖。分享卡未产出；像素字库仍为占位。
+- **待实现**：群聊玩家发言深度（PRD-TBD-02）、像素字库、分享卡（OG 图）与 meta、C3-009 的专用尾声数据节点（当前出口由标题/结局屏承担）。
 - **引擎设计已预留**：`settlement` 节点类型（章末结算）、`clues` 条件、meta 图鉴、`variants` 条件文本、`price` 价格标签、`deletedMessages` 存档字段。
 
 ## 8. 变更记录
@@ -277,3 +279,4 @@ interface NodeVariant {
 - 2026-11-21 v0.9.2：身份提示审计 6 项。`TypingEffect` 新增可选 `label`，`TypingDelete` 按标签渲染（缺省「输入框」）；C1-063 显式「给妈妈」，C2-083 由硬编码「给妈妈」改为「给小满」；C3-021 增加与 3min S3 相同的 `sceneNote`；`CropContent` 新增可选 `headerNote` 并由 `CropNight` 统一渲染，C2-004 与 3min S2-001 均显示「11/27 夜 · 予安的手机」；C2-004 `wrongFeedback` 补齐 0/1/7（8 个非目标行全覆盖）；C3-007 副行改「教室 · 你的座位」。测试 100 项（新增 C2-083 标签、C3-021/C3-007 提示断言；扩展 C1-063、C2-004、S2-001 断言）。
 - 2026-11-22 v0.9.3：移动端对话/选项布局 + 重新发布。新增 `.game-bottom` 容器与 `has-choices` 标记：390px 竖屏下对话/聊天与选项上下堆叠，对话区 `max-height` + 文本内部滚动，选项列表按剩余空间收缩/滚动；聊天窗限高 40vh、正文 32vh；场景标题与立绘避让。桌面端 `display: contents` 保持原绝对定位。身份提示 6 项与布局修复一次性重新发布；线上 `index-BZd8IE_9.js` / `index-NciBCxWX.css` 与本地 `dist` SHA256 一致。测试 100 项不变。
 - 2026-11-22 v0.10.0：视觉一档 P4。新增 6 立绘（768×1024）、5 场景（1536×1024）、2 表情包（512×512）；`PixelAvatar` 改 `<img>` + 网格回退，`SceneBackground` 按 SceneKey 映射 + CSS 回退，`ChatMessage` 增加 `src` 并由 PhoneChat 渲染图片与 UI 叠字（加载后自动吸底），C2-006/C3-003 改为 chat 演出承载表情包；`EndingScreen` 预留可选插画位（缺图不渲染）。素材经 Pillow 量化压缩至 1,977,842 bytes（1.89 MiB）；可选结局插画预览存 `release-assets/26–30` 但未接入。测试 100 项不变；线上 JS `index-BWpPf4VP.js` / CSS `index-uog8byxe.css` 与本地 SHA256 一致。
+- 2026-11-25 v0.10.1：桌面重叠修复 + 结局插画接入。`.game-bottom--choices` 从竖屏媒体查询提升为全视口规则：有选项时 1440 桌面同样底部上下堆叠，对话/聊天正文限高内部滚动，选项在下且按剩余空间滚动；场景标题上移、立绘在有选项时上移避让。5 张结局插画（800×450，`public/assets/endings/e1–e5.png`）接入，EndingScreen 按 endingId 渲染并保留缺图隐藏。素材合计 2,311,560 bytes（2.20 MiB，≤2.5MB）。测试 100 项不变；线上 JS `index-CXAgtL7_.js` / CSS `index-CCoQuU-T.css` 与本地 SHA256 一致。

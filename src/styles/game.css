@@ -41,9 +41,90 @@
   box-shadow: none;
 }
 
-/* 内容 + 选项容器：桌面端不产生布局盒，沿用各组件绝对定位 */
+/* 内容 + 选项容器：无选项时不产生布局盒，沿用各组件绝对定位 */
 .game-bottom {
   display: contents;
+}
+
+/* 有选项时：所有视口统一在底部上下堆叠，正文不被选项遮挡 */
+.game-bottom--choices {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4%;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-height: calc(100% - 70px);
+  pointer-events: none;
+}
+
+.game-bottom--choices > * {
+  pointer-events: auto;
+}
+
+.game-bottom--choices > .dialogue-box,
+.game-bottom--choices > .phone-chat,
+.game-bottom--choices > .choice-list {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  transform: none;
+}
+
+.game-bottom--choices > .dialogue-box {
+  width: 92%;
+  max-width: none;
+  min-height: 168px;
+  max-height: 40vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-bottom--choices > .dialogue-box .dialogue-box__text {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 32vh;
+  overflow-y: auto;
+}
+
+.game-bottom--choices > .phone-chat {
+  width: 300px;
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-bottom--choices > .phone-chat .phone-chat__body {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  max-height: 32vh;
+}
+
+.game-bottom--choices > .choice-list {
+  width: min(560px, 84%);
+  max-height: 48vh;
+  overflow-y: auto;
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+.game-bottom--choices .choice-btn {
+  flex-shrink: 0;
+}
+
+.game-root.has-choices .scene-title {
+  top: 6%;
+}
+
+.game-root.has-choices .stage-portrait {
+  bottom: 60%;
+  transform: scale(0.92);
+  transform-origin: bottom left;
 }
 
 /* 立绘区 */

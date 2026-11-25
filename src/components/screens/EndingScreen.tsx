@@ -5,15 +5,13 @@ import { PixelButton } from '../ui/PixelButton';
 import { EndingGallery } from './EndingGallery';
 import '../../styles/screens.css';
 
-const ENDING_ART = import.meta.glob('../../assets/endings/*.png', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-}) as Record<string, string>;
-
-function endingArtFor(id: string): string | undefined {
-  return ENDING_ART[`../../assets/endings/${id.toLowerCase()}.png`];
-}
+const ENDING_ART: Record<string, string> = {
+  E1: 'e1.png',
+  E2: 'e2.png',
+  E3: 'e3.png',
+  E4: 'e4.png',
+  E5: 'e5.png',
+};
 
 /** 结局卡：endingId 由引擎按 GAMEPLAY_DESIGN §7.1 判定矩阵求值后进入此屏 */
 export function EndingScreen() {
@@ -22,16 +20,17 @@ export function EndingScreen() {
   const [artFailed, setArtFailed] = useState(false);
   const ending = state.endingId ? ENDINGS[state.endingId] : null;
   const isThreeMin = state.run?.chapter === '3min';
-  const art = ending ? endingArtFor(ending.id) : undefined;
+  const artFile = ending ? ENDING_ART[ending.id] : undefined;
+  const artSrc = artFile ? `${import.meta.env.BASE_URL}assets/endings/${artFile}` : undefined;
 
   if (!ending) return null;
 
   return (
     <div className="ending-screen">
       <div className="ending-card pixel-panel">
-        {art && !artFailed && (
+        {artSrc && !artFailed && (
           <div className="ending-card__art">
-            <img src={art} alt="" onError={() => setArtFailed(true)} />
+            <img src={artSrc} alt="" onError={() => setArtFailed(true)} />
           </div>
         )}
         <div className="ending-card__label">回 声 落 定</div>
