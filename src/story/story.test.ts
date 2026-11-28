@@ -243,6 +243,28 @@ describe('剧情数据完整性', () => {
     );
   });
 
+  it('神态差分按 ASSET_LIST §9 挂到目标节点', () => {
+    const expected: Record<string, string> = {
+      'C1-005': 'hurt',
+      'C1-006': 'hurt',
+      'C1-007': 'hurt',
+      'C1-008': 'hope',
+      'C1-010': 'hope',
+      'C2-003': 'strained',
+      'C2-004': 'strained',
+      'C2-005': 'strained',
+      'C2-007': 'crack',
+      'C2-008': 'crack',
+      'C3-002': 'tense',
+      'C3-004': 'tense',
+      'C3-006': 'resolve',
+      'C3-007': 'resolve',
+    };
+    for (const [id, mood] of Object.entries(expected)) {
+      expect(STORY_INDEX.nodes.get(id)?.portraitMood).toBe(mood);
+    }
+  });
+
   it('C3-021 输入框带场景说明，C3-007 副行提示「你的座位」', () => {
     expect(STORY_INDEX.nodes.get('C3-021')?.composer?.sceneNote).toBe(
       '群聊之夜 · 陈屿侧：群里还在刷。你盯着输入框。',

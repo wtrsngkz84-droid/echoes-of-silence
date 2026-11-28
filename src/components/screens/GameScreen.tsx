@@ -39,6 +39,15 @@ const CHAPTER_NAMES: Record<ChapterId, string> = {
   epilogue: '尾声 · 回声',
 };
 
+const MOOD_CHARACTER: Record<string, string> = {
+  hurt: 'xiaoman',
+  hope: 'xiaoman',
+  strained: 'yuAn',
+  crack: 'yuAn',
+  tense: 'chenyu',
+  resolve: 'chenyu',
+};
+
 export function GameScreen() {
   const game = useGame();
   const { state } = game;
@@ -68,7 +77,12 @@ export function GameScreen() {
     node !== null &&
     options.length > 0 &&
     (node.kind !== 'chat' || run.chatPlayed >= chatTotal);
-  const portrait = node?.speaker ? CHARACTERS[node.speaker] : undefined;
+  const moodCharacter = node?.portraitMood ? MOOD_CHARACTER[node.portraitMood] : undefined;
+  const portrait = node?.speaker
+    ? CHARACTERS[node.speaker]
+    : moodCharacter
+      ? CHARACTERS[moodCharacter]
+      : undefined;
 
   const overlayBlocked = state.menuOpen || state.cluePanelOpen || viewerContent !== null;
 
@@ -141,7 +155,7 @@ export function GameScreen() {
 
   return (
     <div
-      className={`game-root${showChoices ? ' has-choices' : ''}`}
+      className={`game-root${showChoices ? ' has-choices' : ''}${node.portraitMood ? ' has-mood' : ''}`}
       data-tone={node.tone ?? 'neutral'}
       data-node-id={node.id}
       onClick={primary}
@@ -185,7 +199,7 @@ export function GameScreen() {
 
       {portrait && node.kind !== 'chat' && (
         <div className="stage-portrait">
-          <PixelAvatar character={portrait} size={128} />
+          <PixelAvatar character={portrait} size={128} mood={node.portraitMood} />
         </div>
       )}
 

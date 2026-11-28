@@ -127,6 +127,13 @@
   transform-origin: bottom left;
 }
 
+@media (min-width: 901px) {
+  .game-root.has-choices .stage-portrait {
+    top: 9%;
+    bottom: auto;
+  }
+}
+
 /* 立绘区 */
 .stage-portrait {
   position: absolute;
@@ -1812,6 +1819,10 @@
     bottom: 62%;
     transform: scale(0.92);
     transform-origin: bottom left;
+  }
+
+  .game-root.has-mood:not(.has-choices) .stage-portrait {
+    bottom: 36%;
   }
 
   .typing-delete {

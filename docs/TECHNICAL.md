@@ -1,6 +1,6 @@
 # TECHNICAL — 《沉默的回声》技术架构说明
 
-> 维护人：开发 / 技术负责人。版本：v0.10.1。日期：2026-11-25。
+> 维护人：开发 / 技术负责人。版本：v0.11.0。日期：2026-11-27。
 > 本文件描述实际实现的架构、数据接口、状态变量、存档方案与验证方式。
 > 重大架构变更必须更新本文件并在 docs/QODER_DEV_LOG.md 留痕。
 > v0.2：对齐 P-014（GAMEPLAY_DESIGN §7.1 五结局判定矩阵 + v_* 数值变量 + EV 证据编号）。
@@ -19,6 +19,7 @@
 > v0.9.3：移动端布局修复——390px 竖屏对话/聊天与选项上下堆叠、台词限高内部滚动、选项按剩余空间滚动；桌面 `display: contents` 无回归。身份提示 6 项与本次布局修复已一次性重新发布。
 > v0.10.0：视觉一档——6 立绘 / 5 场景 / 2 表情包接入（缺图回退），表情包两处剧情点改为 chat 演出，EndingScreen 预留可选插画位；素材合计 1.89 MiB（≤2MB），公网重新发布。
 > v0.10.1：桌面重叠修复 + 结局插画接入——有选项时 390/768/1440 统一上下堆叠；5 张结局插画接入 `public/assets/endings/` 并启用 EndingScreen 插画位；素材合计 2.20 MiB（≤2.5MB），公网重新发布。
+> v0.11.0：P4 第二档——6 张神态差分（`portraitMood`）接入主线节点；4 段原创 CC0 BGM（menu/ch1/ch2/ch3，ogg+mp3、40s 无缝循环、600ms 交叉淡化、−18dB、静音记忆）；证据物小图（P2）延期。
 
 ## 1. 技术栈与运行方式
 
@@ -43,9 +44,9 @@ npm run preview    # 本地预览构建产物
 
 - 线上地址：<https://echoes-of-silence-rwx94cwcoxm.qoder.zone>（Qoder Sites，公开访问、无需登录；完整版 + 3 分钟体验双入口）。作品要求在 Qoder Sites 公网部署，`dist/` 同时可托管于任意静态服务器。
 - `vite.config.ts` 使用 `base: './'`，构建产物全部为相对资源，可直接放在任意子路径；`index.html` 单入口，无路由依赖，静态刷新返回 200。
-- 发布方式：`npm run build` → 将 `dist/` 交给 Qoder Sites / 静态托管；v0.10.1 发布的 `dist` 与线上 asset 哈希一致（`index-CXAgtL7_.js` / `index-CCoQuU-T.css`，SHA256 逐一比对相同）。
-- 构建体积基线（gzip）：JS 115.37 KB、CSS 7.20 KB、HTML 0.47 KB。
-- 视觉素材体积：`public/assets/` 18 个 PNG 合计 2,311,560 bytes（2.20 MiB），满足 ≤2.5MB 红线。
+- 发布方式：`npm run build` → 将 `dist/` 交给 Qoder Sites / 静态托管；v0.11.0 发布的 `dist` 与线上 asset 哈希一致（`index-BKDfnFDj.js` / `index-BbatdVOa.css`，SHA256 逐一比对相同）。
+- 构建体积基线（gzip）：JS 117.15 KB、CSS 7.31 KB、HTML 0.47 KB。
+- 素材体积：`public/assets/` 24 个 PNG 合计 3,255,274 bytes（3.10 MiB）；BGM 8 个文件合计 4,428,016 bytes（4.22 MiB），单段 ogg 428–513 KB、mp3 641 KB（均 <1.5MB）。
 
 ### 终端适配与设计变量（v0.9）
 
@@ -95,6 +96,7 @@ interface StoryNode {
   scene?: SceneKey;        // 场景背景（暖/冷色调由 tone 驱动）
   tone?: 'warm'|'cold'|'neutral';   // STORY_BIBLE §7 色调基调（D10 前暖黄，D12 起冷灰蓝）
   speaker?: CharacterId;   // dialogue 必填
+  portraitMood?: string;   // 立绘神态 key（hurt/hope/strained/crack/tense/resolve）
   text?: string;           // 非 chat/typing/summary 节点必填（ending 可空；variants 可替代）
   variants?: NodeVariant[]; // 条件文本变体：首个 requires 满足的条目覆盖 text
   messages?: ChatMessage[]; // chat 节点必填，逐条点击播放；支持消息级 requires 变体演出
@@ -183,6 +185,19 @@ interface NodeVariant {
 - `public/assets/endings/`：5 张 800×450 结局插画（`e1.png`～`e5.png`）。`EndingScreen` 按 endingId 映射并在卡面顶部渲染，预留 `onError` 隐藏；缺图不显示。
 - 压缩：环境无 pngquant/oxipng，使用 Pillow 调色板量化（立绘 40 色、场景 32 色、表情包/结局 32 色，无抖动）+ `optimize`；18 个文件合计 2,311,560 bytes。
 
+**神态差分（v0.11.0，ASSET_LIST §9）**：
+- `public/assets/characters/{id}-{mood}.png`：`xiaoman-hurt/hope`、`yuan-strained/crack`、`chenyu-tense/resolve`（768×1024，图生图，保服装/构图/色板）。
+- `StoryNode.portraitMood?: string`；`PixelAvatar` 依次尝试 `{base}-{mood}.png` → `{base}.png` → 12×12 网格；`base` 取默认立绘文件名（避免 `yuAn` 与 `yuan.png` 大小写不一致）。
+- 挂点按 §9：C1-005/006/007 hurt、C1-008/010 hope、C2-003/004/005 strained、C2-007/008 crack、C3-002/004 tense、C3-006/007 resolve。
+- 无 speaker 的旁白/内心节点由 mood 推导 POV 角色（hurt/hope→xiaoman、strained/crack→yuAn、tense/resolve→chenyu）。有选项时桌面立绘移至左上 9%，移动端无选项时上移至 36%，避免被对话/选项遮挡。
+
+**章节 BGM（v0.11.0，ASSET_LIST §10）**：
+- `public/assets/audio/bgm/{menu,ch1,ch2,ch3}.{ogg,mp3}`：4 段原创合成 CC0 ambient，40s 无缝循环；OGG 428–513 KB、MP3 641 KB（单段 <1.5MB）；授权登记见 `docs/ASSET_LIST.md` §12。
+- `src/audio/track.ts`：页面/章节 → BGM key（标题/警告/结局/画廊/回顾 → menu；完整版按 chapter；3min S1→ch1、S2→ch2、S3/S4→ch3、S5→menu）。
+- `src/audio/bgm.ts`：`BgmController` 双轨 `Audio` 循环；首次用户手势解锁，`preload=auto` 懒加载；切换 600ms 线性交叉淡化，默认音量 −18dB（≈0.126）；静音 220ms 淡出并暂停，状态写 `localStorage.eos.bgm.muted`；音频元素挂到隐藏 host 便于状态检查。
+- `src/audio/BgmContext.tsx` 在 `App` 内包裹 `GameProvider`，随 `screen/run.chapter/currentNodeId` 切轨；标题屏右上 `BgmToggle`，游戏菜单增加「BGM：开/关」。
+- 证据物小图（ASSET_LIST §11，P2）本次未产出，线索面板维持文本卡。
+
 **章末小结**（`kind: 'summary'`，C1-010）：
 - `ChapterSummary` 读取 `buildChapterSummary(run.flags)` 的纯函数结果，渲染条件摘要行、倒计时锚与固定引导语。
 - C1-010 → C2-001；C2-009 → C3-001；C3-008 为结局判定节点（C3-009 无专用数据节点，出口/画廊/回顾由 M2 P2 的界面承担）。
@@ -232,7 +247,7 @@ interface NodeVariant {
 ## 6. 校验与测试
 
 - `validateStory`：正式剧本入库前必须通过（error 阻断：goto 断裂/缺 text/messages/speaker/线索不存在/章节起点缺失/screenshot 消息缺截图内容/typing 缺 draft 或 final/floodFrom 越界；warning：节点 id 命名偏离三位约定/autoFlood 用在非 chat 节点）。开发模式在控制台输出。
-- 单元测试 **100 项**：条件求值（真值/取反/组合/线索/**v_* 数值比较语法**）、结局判定（E1–E5 各命中分支 + **128 组合表驱动枚举**与 §7.1 独立重述逐一比对）、节点推进（effects/线索去重/选项拦截/聊天过滤/截图内容校验/**条件文本变体**）、**自动上涌状态机**、**截图查看器状态**、**推理指认状态机（错误可重试/正确锁定）**、**担责清单两档（全选 2/部分 1）**、存档（单槽位覆盖/通关失效/损坏 JSON/静默失败/**旧档 deletedMessages 兼容**/**`eos_3min_v1` 与完整版隔离**）、**第一/二/三章 §5 关键原文逐字包含**、**C1/C2 摘要渲染**、**第一、二、三章各四条章级路径终态变量**、**C2-005 四变体 × 留群跨章渲染**、**FR-13 S1–S5 三条路径（默认 E5 / 沉默 E1 / 四选均可进入 S2）**、**FR-13 真人走查回归（S1 四选项独立后果节点、S2 全量错误反馈、S3 场景说明、S4 标题去重）**、**身份提示审计（C1-063/C2-083 打字标签、C2-004 裁剪头注与全量反馈、C3-021 场景说明、C3-007 座位副行）**、**选项 hint 不含内部变量/文档编号**。
+- 单元测试 **102 项**：条件求值（真值/取反/组合/线索/**v_* 数值比较语法**）、结局判定（E1–E5 各命中分支 + **128 组合表驱动枚举**与 §7.1 独立重述逐一比对）、节点推进（effects/线索去重/选项拦截/聊天过滤/截图内容校验/**条件文本变体**）、**自动上涌状态机**、**截图查看器状态**、**推理指认状态机（错误可重试/正确锁定）**、**担责清单两档（全选 2/部分 1）**、存档（单槽位覆盖/通关失效/损坏 JSON/静默失败/**旧档 deletedMessages 兼容**/**`eos_3min_v1` 与完整版隔离**）、**第一/二/三章 §5 关键原文逐字包含**、**C1/C2 摘要渲染**、**第一、二、三章各四条章级路径终态变量**、**C2-005 四变体 × 留群跨章渲染**、**FR-13 S1–S5 三条路径（默认 E5 / 沉默 E1 / 四选均可进入 S2）**、**FR-13 真人走查回归（S1 四选项独立后果节点、S2 全量错误反馈、S3 场景说明、S4 标题去重）**、**身份提示审计（C1-063/C2-083 打字标签、C2-004 裁剪头注与全量反馈、C3-021 场景说明、C3-007 座位副行）**、**神态差分挂点表（ASSET_LIST §9）**、**BGM 章节映射（标题/结局/三章/3min S1–S5）**、**选项 hint 不含内部变量/文档编号**。
 - 浏览器实测（2026-11-16，STORY_SCRIPT V0.1 入库后，应用内浏览器 + 存档注入分段）：
   - 默认线：`v_xm_help=3`、`v_xm_variant=0`、`v_xm_stay=0`、`v_xm_read_zhou=1`、`v_mom_alert=0`、`v_xm_openness=1`、`v_xm_ask_cy=1`；摘要含「妈妈知道了全部」「她敲了办公室的门。李老师收下了全部材料。」
   - 沉默线：`v_xm_help=0`、`v_xm_variant=3`、`v_xm_stay=1`、`v_xm_openness=0`；摘要含「她留在群里，一句话也没有说」「十二天，她把所有东西都收在帆布包里，没有交出去。」
@@ -248,6 +263,7 @@ interface NodeVariant {
 - 移动端布局抽查（2026-11-22，无头 Chrome 390×844，公网发布后复测）：C1-021 对话/选项重叠 164→0px、C1-005 聊天/选项 197→0px、C1-009 行动窗口 237→0px、C3-006 价格行动窗口 237→0px；长台词 `clientHeight 228 / scrollHeight 1469`（限高内部滚动）；推理 C2-066/C3-054 与清单 C2-086 完整在视口内；无横向滚动。桌面 1440×900 的 C1-005 几何与旧公网快照逐项一致（聊天 x570 y430 300×328、选项 y379–693），无回归。
 - 正式视觉素材抽查（2026-11-22，公网 v0.10.0）：390/768/1440 三档加载 6 立绘、5 场景与 2 表情包均 `complete` 且自然尺寸正确；C1-021 立绘 768×1024 显示 90×118（390）/98×128（1440）；C2-006/C3-003 两张表情包与 UI 文案正确、聊天窗自动吸底、390px 无对话/选项重叠；C1-008/C1-003/C2-082/C1-005 的午后/走廊/冷教室/夜房间场景均加载。屏蔽 `assets/characters/*`、`assets/scenes/*` 后立绘回退网格、场景回退 CSS 装饰。控制台零报错。
 - 桌面重叠修复与结局插画抽查（2026-11-25，公网 v0.10.1）：1440×900 下 C1-021 对话+3 选项重叠 0（对话 410–578、选项 590–823），C2-006 聊天+2 表情包+3 选项重叠 0（聊天 202–578、选项 590–823），C3-006 价格行动窗口 5 选项全部可见；390×844 与 768×1024 回归仍为 0 重叠、无横向滚动。E5 结局卡插画 800×450 正常加载；e1–e5 公网均 200；控制台零报错。
+- 神态差分与 BGM 抽查（2026-11-27，公网 v0.11.0）：C1-006 / C2-007 / C3-006 分别加载 `xiaoman-hurt` / `yuan-crack` / `chenyu-resolve`（768×1024）；390/768/1440 下立绘可见、对话/选项零重叠、无横向滚动。标题 BGM 开关与菜单「BGM：开/关」可用；点击后 `menu.ogg` → `ch1.ogg` 切换，活动音轨 `volume≈0.126`（−18dB）、`loop=true`；静音后 `localStorage.eos.bgm.muted=1`、音轨 paused/volume 0，重载后保持；菜单内切换不关闭菜单。headless 无音频输出，爆音无法听辨；实现为 600ms 从 0 起线性交叉淡化，OGG 循环边界已做 1.5s 交叉淡化。控制台零报错。
 - M0 审查 3 个 UI 问题修复：530px 顶栏徽章压缩聊天窗（两档 @media 缩小）、聊天窗新消息提示（`● 新消息 ×N · 点击播放`）、结局卡判定输入展示改用引擎 `JUDGEMENT_VARS` 单一来源。另修复：走廊场景装饰「红榜」（v0.1 遗留）改「公告栏」；v0.3 清理 `game.css` 残留 `F-14a` 注释。
 
 ## 7. 当前实现范围与边界
@@ -258,7 +274,8 @@ interface NodeVariant {
 - **FR-13 三分钟路径（v0.8 / v0.9.1）**：标题屏入口 B「3 分钟体验」→ S1 群聊（C1-CP1 四选，每项接 1 条独立后果文本节点）→ S2 CropNight（8 个非目标行全量反馈）→ S3 MessageComposer（`sceneNote` 场景说明）→ S4 三线快切（主/副标题去重）→ S5 同一矩阵结算；全部变量 `3min_` 前缀，存档键 `eos_3min_v1`（version 1），不写完整版 `eos.save.v2`/`eos.meta.v2`；S5 固定「这是完整体验的十分之一 / 完整体验里，你还有十二天。」+ 进入完整体验 / 重新选择 3 分钟。
 - **收尾交付（v0.9）**：三档视口真机自测完成；生产构建通过并已用 Qoder Sites 公网发布（公开访问、匿名可玩）；`dist/` 可直接静态部署。发布素材存于 `release-assets/`（游戏内 3 张 + 过程记录 3 张）。
 - **视觉一档（v0.10.1）**：6 立绘 + 5 场景 + 2 表情包 + 5 结局插画已接入，缺图回退可用；素材合计 2,311,560 bytes（2.20 MiB，≤2.5MB）。有选项时 390/768/1440 统一上下堆叠，桌面正文不再被选项覆盖。分享卡未产出；像素字库仍为占位。
-- **待实现**：群聊玩家发言深度（PRD-TBD-02）、像素字库、分享卡（OG 图）与 meta、C3-009 的专用尾声数据节点（当前出口由标题/结局屏承担）。
+- **P4 第二档（v0.11.0）**：6 神态差分接入主线节点（`portraitMood`）；4 段原创 CC0 BGM（40s、ogg+mp3、交叉淡化、−18dB、静音记忆）接入，8 个音频文件合计 4.22 MiB。证据物小图（P2）延期，线索面板维持文本卡。
+- **待实现**：群聊玩家发言深度（PRD-TBD-02）、像素字库、证据物小图（ASSET_LIST §11 P2）、分享卡（OG 图）与 meta、C3-009 的专用尾声数据节点（当前出口由标题/结局屏承担）。
 - **引擎设计已预留**：`settlement` 节点类型（章末结算）、`clues` 条件、meta 图鉴、`variants` 条件文本、`price` 价格标签、`deletedMessages` 存档字段。
 
 ## 8. 变更记录
@@ -280,3 +297,4 @@ interface NodeVariant {
 - 2026-11-22 v0.9.3：移动端对话/选项布局 + 重新发布。新增 `.game-bottom` 容器与 `has-choices` 标记：390px 竖屏下对话/聊天与选项上下堆叠，对话区 `max-height` + 文本内部滚动，选项列表按剩余空间收缩/滚动；聊天窗限高 40vh、正文 32vh；场景标题与立绘避让。桌面端 `display: contents` 保持原绝对定位。身份提示 6 项与布局修复一次性重新发布；线上 `index-BZd8IE_9.js` / `index-NciBCxWX.css` 与本地 `dist` SHA256 一致。测试 100 项不变。
 - 2026-11-22 v0.10.0：视觉一档 P4。新增 6 立绘（768×1024）、5 场景（1536×1024）、2 表情包（512×512）；`PixelAvatar` 改 `<img>` + 网格回退，`SceneBackground` 按 SceneKey 映射 + CSS 回退，`ChatMessage` 增加 `src` 并由 PhoneChat 渲染图片与 UI 叠字（加载后自动吸底），C2-006/C3-003 改为 chat 演出承载表情包；`EndingScreen` 预留可选插画位（缺图不渲染）。素材经 Pillow 量化压缩至 1,977,842 bytes（1.89 MiB）；可选结局插画预览存 `release-assets/26–30` 但未接入。测试 100 项不变；线上 JS `index-BWpPf4VP.js` / CSS `index-uog8byxe.css` 与本地 SHA256 一致。
 - 2026-11-25 v0.10.1：桌面重叠修复 + 结局插画接入。`.game-bottom--choices` 从竖屏媒体查询提升为全视口规则：有选项时 1440 桌面同样底部上下堆叠，对话/聊天正文限高内部滚动，选项在下且按剩余空间滚动；场景标题上移、立绘在有选项时上移避让。5 张结局插画（800×450，`public/assets/endings/e1–e5.png`）接入，EndingScreen 按 endingId 渲染并保留缺图隐藏。素材合计 2,311,560 bytes（2.20 MiB，≤2.5MB）。测试 100 项不变；线上 JS `index-CXAgtL7_.js` / CSS `index-CCoQuU-T.css` 与本地 SHA256 一致。
+- 2026-11-27 v0.11.0：P4 第二档。6 张神态差分（`xiaoman-hurt/hope`、`yuan-strained/crack`、`chenyu-tense/resolve`）接入 `portraitMood`，旁白/内心节点可从 mood 推导 POV 立绘；4 段原创 CC0 BGM（menu/ch1/ch2/ch3，40s、ogg+mp3、8 文件 4.22 MiB）与 `BgmController`/`BgmProvider` 接入，600ms 交叉淡化、−18dB、静音记忆、首次用户手势解锁；3min S1→ch1/S2→ch2/S3–S4→ch3/S5→menu。新增神态挂点与 BGM 映射测试（102 项）。证据物小图（P2）延期。线上 JS `index-BKDfnFDj.js` / CSS `index-BbatdVOa.css` 与本地 SHA256 一致。

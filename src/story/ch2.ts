@@ -240,6 +240,7 @@ export const CH2_NODES: StoryNode[] = [
   // ══════════ C2-003 晓芸电话 ══════════
   {
     id: 'C2-003',
+    portraitMood: 'strained',
     chapter: 'ch2',
     kind: 'call',
     scene: 'home-night',
@@ -312,6 +313,7 @@ export const CH2_NODES: StoryNode[] = [
   // ══════════ C2-004 裁剪之夜 ══════════
   {
     id: 'C2-004',
+    portraitMood: 'strained',
     chapter: 'ch2',
     kind: 'crop',
     scene: 'home-night',
@@ -343,6 +345,7 @@ export const CH2_NODES: StoryNode[] = [
   // ══════════ C2-005 群爆·被拥护感 ══════════
   {
     id: 'C2-005',
+    portraitMood: 'strained',
     chapter: 'ch2',
     kind: 'chat',
     scene: 'home-night',
@@ -854,6 +857,7 @@ export const CH2_NODES: StoryNode[] = [
   // ══════════ C2-007 公示反噬 ══════════
   {
     id: 'C2-007',
+    portraitMood: 'crack',
     chapter: 'ch2',
     kind: 'narration',
     scene: 'hallway',
@@ -921,6 +925,7 @@ export const CH2_NODES: StoryNode[] = [
   // ══════════ C2-008 责任三岔 ══════════
   {
     id: 'C2-008',
+    portraitMood: 'crack',
     chapter: 'ch2',
     kind: 'narration',
     scene: 'classroom-cold',

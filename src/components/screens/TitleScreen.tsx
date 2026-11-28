@@ -3,6 +3,7 @@ import { useGame } from '../../state/GameContext';
 import type { ChapterId } from '../../engine/types';
 import { STORY_INDEX } from '../../story/index';
 import { PixelButton } from '../ui/PixelButton';
+import { BgmToggle } from '../ui/BgmToggle';
 import { EndingGallery } from './EndingGallery';
 import { ChapterReview } from './ChapterReview';
 import '../../styles/screens.css';
@@ -40,6 +41,7 @@ export function TitleScreen() {
 
   return (
     <div className="title-screen">
+      <BgmToggle className="bgm-toggle--title" />
       <h1 className="title-screen__logo">沉默的回声</h1>
       <div className="title-screen__sub">ECHOES OF SILENCE</div>
       <div className="title-screen__menu">

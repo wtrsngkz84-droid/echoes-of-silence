@@ -34,6 +34,31 @@
   margin-bottom: clamp(10px, 4vh, 26px);
 }
 
+.bgm-toggle {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 45;
+  padding: 6px 10px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+  background: rgba(36, 31, 61, 0.92);
+  border: 2px solid var(--panel-edge);
+  box-shadow: 0 3px 0 var(--panel-edge);
+  cursor: pointer;
+}
+
+.bgm-toggle:hover,
+.bgm-toggle:focus-visible {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.bgm-toggle[aria-pressed='true'] {
+  color: var(--accent);
+}
+
 .title-screen__menu {
   display: flex;
   flex-direction: column;

@@ -129,4 +129,7 @@
 
 | 资产 | 作者/来源 | 许可 | 日期 | 备注 |
 | --- | --- | --- | --- | --- |
-| （BGM 待填） | | | | 上线前必须补齐 |
+| `menu.ogg` / `menu.mp3` — Empty Chair (Menu) | 开发团队（Qoder 辅助合成，原创）/ https://github.com/wtrsngkz84-droid/echoes-of-silence/tree/main/public/assets/audio/bgm | CC0 1.0 | 2026-11-27 | 40s 无缝循环；ogg+mp3；单文件 <1.5MB；无外部音源 |
+| `ch1.ogg` / `ch1.mp3` — Cold Corridor (Ch1) | 开发团队（Qoder 辅助合成，原创）/ 同上 | CC0 1.0 | 2026-11-27 | 40s 无缝循环；低频 drone + 稀疏钢琴；单文件 <1.5MB |
+| `ch2.ogg` / `ch2.mp3` — Dark Pulse (Ch2) | 开发团队（Qoder 辅助合成，原创）/ 同上 | CC0 1.0 | 2026-11-27 | 40s 无缝循环；暗脉冲 + 心跳低音；单文件 <1.5MB |
+| `ch3.ogg` / `ch3.mp3` — Pencil Silence (Ch3) | 开发团队（Qoder 辅助合成，原创）/ 同上 | CC0 1.0 | 2026-11-27 | 40s 无缝循环；环境底噪 + 铅笔沙沙；单文件 <1.5MB |

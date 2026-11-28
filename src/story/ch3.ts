@@ -113,6 +113,7 @@ export const CH3_NODES: StoryNode[] = [
   // ══════════ C3-002 群聊之夜·输入框 ══════════
   {
     id: 'C3-002',
+    portraitMood: 'tense',
     chapter: 'ch3',
     kind: 'chat',
     scene: 'home-night',
@@ -398,6 +399,7 @@ export const CH3_NODES: StoryNode[] = [
   // ══════════ C3-004 教室独处 ══════════
   {
     id: 'C3-004',
+    portraitMood: 'tense',
     chapter: 'ch3',
     kind: 'narration',
     scene: 'classroom-afternoon',
@@ -655,6 +657,7 @@ export const CH3_NODES: StoryNode[] = [
   // ══════════ C3-006 行动窗口 ══════════
   {
     id: 'C3-006',
+    portraitMood: 'resolve',
     chapter: 'ch3',
     kind: 'narration',
     scene: 'classroom-cold',
@@ -767,6 +770,7 @@ export const CH3_NODES: StoryNode[] = [
   // ══════════ C3-007 班会 ══════════
   {
     id: 'C3-007',
+    portraitMood: 'resolve',
     chapter: 'ch3',
     kind: 'chat',
     scene: 'classroom',

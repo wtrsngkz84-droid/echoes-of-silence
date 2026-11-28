@@ -3,6 +3,37 @@
 > 本文件记录真实工作状态，供两位成员的 Qoder 在新会话恢复上下文。  
 > 记录“已经做了什么、验证了什么、还差什么”；计划不等于完成，未运行不等于通过。
 
+## 2026-11-27 — 神态差分 + 章节 BGM + 重新发布（开发负责人）
+
+- 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。
+- 起始分支与基线提交：main @ `615eb64`（ASSET_LIST V0.2 §9–§11）。
+- 任务目标与关联需求：P1 神态差分（6 张）+ P1 章节 BGM（4 段）；P2 证据物小图可砍。11/28 前重新发布并给 3 张神态截图 + 静音开关截图。
+- 素材产出：
+  - `public/assets/characters/{xiaoman-hurt,xiaoman-hope,yuan-strained,yuan-crack,chenyu-tense,chenyu-resolve}.png`（6 张 768×1024，图生图；保服装/构图/色板；无角标）。总计约 0.92 MiB。
+  - `public/assets/audio/bgm/{menu,ch1,ch2,ch3}.{ogg,mp3}`（8 个文件，合计 4,428,016 bytes / 4.22 MiB）。4 段均为原创合成 ambient，40s 无缝循环（1.5s 边界交叉淡化）；OGG 428–513 KB、MP3 641 KB，单段 <1.5MB。授权登记已写入 `docs/ASSET_LIST.md` §12（作者：开发团队/Qoder 辅助合成；CC0 1.0；日期 2026-11-27；无外部音源）。
+  - 证据物小图（P2）未产出，线索面板维持文本卡；分享卡/OG 仍未做。
+- 集成变更：
+  - `src/engine/types.ts`：`StoryNode.portraitMood?: string`。
+  - `src/components/stage/PixelAvatar.tsx`：新增 `mood`，依次尝试 `{base}-{mood}.png` → `{base}.png` → 12×12 网格；base 取默认文件名，修复 `yuAn`/`yuan` 大小写。
+  - `src/components/screens/GameScreen.tsx`：无 speaker 时由 mood 推导 POV 角色（hurt/hope→小满、strained/crack→予安、tense/resolve→陈屿），并给 `game-root` 加 `has-mood`；有选项桌面立绘移至左上 9%，移动端无选项立绘上移至 36%。
+  - `src/story/ch1.ts` / `ch2.ts` / `ch3.ts`：按 §9 表挂 C1-005/006/007、C1-008/010、C2-003/004/005、C2-007/008、C3-002/004、C3-006/007。
+  - `src/audio/track.ts`：页面/章节 → BGM key（标题/警告/结局/画廊/回顾→menu；完整版按 chapter；3min S1→ch1、S2→ch2、S3/S4→ch3、S5→menu）。
+  - `src/audio/bgm.ts` + `src/audio/BgmContext.tsx`：`BgmController` 双轨 `Audio`，首次手势解锁、懒加载、600ms 线性交叉淡化、−18dB、静音 220ms 淡出并写 `eos.bgm.muted`；`BgmProvider` 包裹 App；音频元素挂隐藏 host 以便验证。
+  - `src/components/ui/BgmToggle.tsx`、`TitleScreen.tsx`、`GameMenu.tsx`、`styles/screens.css`：标题右上与游戏菜单「BGM：开/关」。
+  - 测试：新增 `src/audio/track.test.ts`（标题/结局/三章/3min S1–S5 映射）与 `story.test.ts` 神态挂点断言；102 项。
+  - 截图：`release-assets/34–36`（小满 hurt / 予安 crack / 陈屿 resolve，1440 公网）、`37–38`（390/768 回归）、`39`（标题 BGM 关）。
+- 验证方法、命令或游玩步骤：
+  - `npm test`；`npm run build`。
+  - 无头 Chrome 公网 v0.11.0：C1-006 / C2-007 / C3-006 分别加载 `xiaoman-hurt` / `yuan-crack` / `chenyu-resolve`（768×1024）；390/768/1440 立绘可见、对话/选项重叠 0、无横向滚动。
+  - BGM（本地 preview + 应用内浏览器 + 公网资源校验）：点击开始后 `menu.ogg` 播放，进入第一章切到 `ch1.ogg`，活动音轨音量 0.126（−18dB）、`loop=true`；标题/菜单静音开关可用；静音后 `localStorage.eos.bgm.muted=1`、音轨 paused/volume 0，重载保持；菜单内切换不关闭菜单。headless 无音频输出，爆音无法听辨；实现上交叉淡化从 0 起、40s 文件边界已做 1.5s 交叉淡化。
+  - 公网校验：`index-BKDfnFDj.js` / `index-BbatdVOa.css` / `xiaoman-hurt.png` / `yuan-crack.png` / `menu.ogg` 的 SHA256 与本地 `dist`/`public` 一致；控制台零报错。
+- 实际结果：通过。**102/102** 测试；build 成功（JS gzip 117.15 KB、CSS 7.31 KB）；图片 3.10 MiB + BGM 4.22 MiB；公网 `published: true`、公开可访问。
+- 发布记录：actionId `eea4290b-10e4-4746-996e-85a72e3c3543`；deploymentId `01a21b46-ccb7-7ed5-884e-db297ab1b0c0`；releaseId `01a21b47-2e14-71a4-bb92-fbabbb2ec9ca`；描述文件由 Sites 工具写回。
+- 未解决问题、风险与依赖：证据物小图（P2）延期；分享卡/OG meta、像素字库仍待；U-009 与 3 分钟真人计时仍待产品侧；BGM 爆音需产品侧真人听辨确认（headless 无法听）。
+- 新决策编号或待确认提案：无新增；按任务要求在 `docs/ASSET_LIST.md` §12 写入 BGM 授权登记（唯一改动的产品文档段落）。
+- 下一步及接手角色：产品侧按 `release-assets/34–39` 复验神态/BGM；开发待命处理证据物小图或 BGM 听感反馈。
+- 提交 / PR 链接：本条与上述源码、素材、截图、描述文件、文档作为单条提交推送 main；哈希以仓库 Git 历史为准。
+
 ## 2026-11-25 — 桌面重叠修复 + 结局插画接入 + 重新发布（开发负责人）
 
 - 执行角色 / 负责人：开发 / 技术负责人（本人 Qoder）。

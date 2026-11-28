@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useBgm } from '../../audio/BgmContext';
 import { useGame } from '../../state/GameContext';
 import { PixelButton } from '../ui/PixelButton';
 import { Sketchbook, type SketchPage } from './Sketchbook';
@@ -7,6 +8,7 @@ import '../../styles/game.css';
 /** 暂停菜单：继续 / 线索 / 速写本（ch3） / 返回标题（自动存档） */
 export function GameMenu() {
   const { state, closeMenu, openClues, backToTitle } = useGame();
+  const { muted, toggleMuted } = useBgm();
   const [sketchbookOpen, setSketchbookOpen] = useState(false);
   const run = state.run;
   const pages: SketchPage[] = [];
@@ -49,6 +51,9 @@ export function GameMenu() {
         {state.run?.chapter === 'ch3' && (
           <PixelButton onClick={() => setSketchbookOpen(true)}>速写本</PixelButton>
         )}
+        <PixelButton aria-pressed={muted} onClick={toggleMuted}>
+          BGM：{muted ? '关' : '开'}
+        </PixelButton>
         <PixelButton onClick={backToTitle}>保存并返回标题</PixelButton>
         <p className="menu-overlay__note">进度已自动保存到本机</p>
       </div>

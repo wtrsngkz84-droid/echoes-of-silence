@@ -221,6 +221,8 @@ export interface StoryNode {
   tone?: ToneKey;
   /** 说话人角色 id（dialogue 必填） */
   speaker?: string;
+  /** 立绘神态 key（如 hurt / hope / strained / crack / tense / resolve） */
+  portraitMood?: string;
   /** 台词/独白/旁白正文（chat/typing 节点可为空） */
   text?: string;
   /** 条件文本变体：首个 requires 满足的条目覆盖 text */

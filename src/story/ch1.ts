@@ -398,6 +398,7 @@ export const CH1_NODES: StoryNode[] = [
   // ══════════ C1-05 群聊之夜 · 11/27 周五晚 ══════════
   {
     id: 'C1-005',
+    portraitMood: 'hurt',
     chapter: 'ch1',
     kind: 'chat',
     scene: 'home-night',
@@ -757,6 +758,7 @@ export const CH1_NODES: StoryNode[] = [
   // ══════════ C1-06 缺席日 · 11/29–11/30 ══════════
   {
     id: 'C1-006',
+    portraitMood: 'hurt',
     chapter: 'ch1',
     kind: 'narration',
     scene: 'home-night',
@@ -957,6 +959,7 @@ export const CH1_NODES: StoryNode[] = [
   // ══════════ C1-07 冷暴力蒙太奇 · 12/1–12/3 ══════════
   {
     id: 'C1-007',
+    portraitMood: 'hurt',
     chapter: 'ch1',
     kind: 'narration',
     scene: 'classroom-cold',
@@ -1154,6 +1157,7 @@ export const CH1_NODES: StoryNode[] = [
   // ══════════ C1-08 图书角 · 12/4 周五 ══════════
   {
     id: 'C1-008',
+    portraitMood: 'hope',
     chapter: 'ch1',
     kind: 'narration',
     scene: 'classroom-afternoon',
@@ -1669,6 +1673,7 @@ export const CH1_NODES: StoryNode[] = [
   },
   {
     id: 'C1-010',
+    portraitMood: 'hope',
     chapter: 'ch1',
     kind: 'summary',
     scene: 'home-night',

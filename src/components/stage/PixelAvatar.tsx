@@ -33,12 +33,31 @@ const PORTRAIT_FILE: Record<string, string> = {
   mom: 'mom.png',
 };
 
-export function PixelAvatar({ character, size = 120 }: { character: CharacterDef; size?: number }) {
+export function PixelAvatar({
+  character,
+  size = 120,
+  mood,
+}: {
+  character: CharacterDef;
+  size?: number;
+  mood?: string;
+}) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const file = PORTRAIT_FILE[character.id];
-  const src = file ? `${import.meta.env.BASE_URL}assets/characters/${file}` : null;
+  const baseFile = PORTRAIT_FILE[character.id];
+  const baseStem = baseFile?.replace(/\.png$/, '');
+  const baseSrc = baseFile ? `${import.meta.env.BASE_URL}assets/characters/${baseFile}` : null;
+  const moodSrc =
+    baseStem && mood
+      ? `${import.meta.env.BASE_URL}assets/characters/${baseStem}-${mood}.png`
+      : null;
+  const src =
+    moodSrc && failedSrc !== moodSrc
+      ? moodSrc
+      : baseSrc && failedSrc !== baseSrc
+        ? baseSrc
+        : null;
 
-  if (src && failedSrc !== src) {
+  if (src) {
     return (
       <img
         className="pixel-art-img"
