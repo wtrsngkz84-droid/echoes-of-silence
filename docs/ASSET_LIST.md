@@ -130,9 +130,9 @@
 | 资产 | 作者/来源 | 许可 | 日期 | 备注 |
 | --- | --- | --- | --- | --- |
 | `menu.ogg` / `menu.mp3` — Empty Chair (Menu) | 开发团队（Qoder 辅助合成，原创）/ https://github.com/wtrsngkz84-droid/echoes-of-silence/tree/main/public/assets/audio/bgm | CC0 1.0 | 2026-11-27 | 40s 无缝循环；ogg+mp3；单文件 <1.5MB；无外部音源 |
-| `ch1.ogg` / `ch1.mp3` — Cold Corridor (Ch1) | 开发团队（Qoder 辅助合成，原创）/ 同上 | CC0 1.0 | 2026-11-27 | 40s 无缝循环；低频 drone + 稀疏钢琴；单文件 <1.5MB |
-| `ch2.ogg` / `ch2.mp3` — Dark Pulse (Ch2) | 开发团队（Qoder 辅助合成，原创）/ 同上 | CC0 1.0 | 2026-11-27 | 40s 无缝循环；暗脉冲 + 心跳低音；单文件 <1.5MB |
-| `ch3.ogg` / `ch3.mp3` — Pencil Silence (Ch3) | 开发团队（Qoder 辅助合成，原创）/ 同上 | CC0 1.0 | 2026-11-27 | 40s 无缝循环；环境底噪 + 铅笔沙沙；单文件 <1.5MB |
+| `ch1.ogg` / `ch1.mp3` — 空椅子 / Empty Chair (Ch1) | 开发团队原创参数化合成 / 同上 | CC0 1.0 | 2026-11-28 | 40s 无缝循环；钢琴独奏、低音区、60 BPM、短动机+长留白、A 小调；无采样/无拼接/无外部音源；单文件 <1.5MB |
+| `ch2.ogg` / `ch2.mp3` — 暗涌 / Undercurrent (Ch2) | 开发团队原创参数化合成 / 同上 | CC0 1.0 | 2026-11-28 | 40s 无缝循环；钢琴八分/十六分琶音 + 低频脉冲/轻心跳、72 BPM；无采样/无拼接/无外部音源；单文件 <1.5MB |
+| `ch3.ogg` / `ch3.mp3` — 余白 / Margin (Ch3) | 开发团队原创参数化合成 / 同上 | CC0 1.0 | 2026-11-28 | 40s 无缝循环；钢琴长音 + 轻合成弦垫、54 BPM、最大留白；无采样/无拼接/无外部音源；单文件 <1.5MB |
 ## 13. V0.2 验收（2026-11-27）
 
 - [x] 表情差分 6 张接入 + `portraitMood` 节点挂点（release-assets/34–36 实拍：小满 hurt / 予安 crack / 陈屿 resolve）
