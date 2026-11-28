@@ -1,6 +1,6 @@
 # TECHNICAL — 《沉默的回声》技术架构说明
 
-> 维护人：开发 / 技术负责人。版本：v0.11.1。日期：2026-11-28。
+> 维护人：开发 / 技术负责人。版本：v0.11.2。日期：2026-11-28。
 > 本文件描述实际实现的架构、数据接口、状态变量、存档方案与验证方式。
 > 重大架构变更必须更新本文件并在 docs/QODER_DEV_LOG.md 留痕。
 > v0.2：对齐 P-014（GAMEPLAY_DESIGN §7.1 五结局判定矩阵 + v_* 数值变量 + EV 证据编号）。
@@ -21,6 +21,7 @@
 > v0.10.1：桌面重叠修复 + 结局插画接入——有选项时 390/768/1440 统一上下堆叠；5 张结局插画接入 `public/assets/endings/` 并启用 EndingScreen 插画位；素材合计 2.20 MiB（≤2.5MB），公网重新发布。
 > v0.11.0：P4 第二档——6 张神态差分（`portraitMood`）接入主线节点；4 段原创 CC0 BGM（menu/ch1/ch2/ch3，ogg+mp3、40s 无缝循环、600ms 交叉淡化、−18dB、静音记忆）；证据物小图（P2）延期。
 > v0.11.1：BGM V0.3——ch1「空椅子」/ ch2「暗涌」/ ch3「余白」改为钢琴主导原创曲（参数化合成、无采样/无拼接/无外部音源）；menu 不变；同名覆盖、代码零改动；公网重新发布。
+> v0.11.2：BGM 音色与演奏升级（§14.2）——三层力度钢琴、击键噪声、踏板/共鸣、高频泛音；力度 ±8%、时值 ±10ms、rubato；add9/maj7/sus 色彩和弦、14% 湿声、钢琴偏左/弦垫偏右；主织体上移中音区（C4–C6），峰值约 −3dBFS。
 
 ## 1. 技术栈与运行方式
 
@@ -45,9 +46,9 @@ npm run preview    # 本地预览构建产物
 
 - 线上地址：<https://echoes-of-silence-rwx94cwcoxm.qoder.zone>（Qoder Sites，公开访问、无需登录；完整版 + 3 分钟体验双入口）。作品要求在 Qoder Sites 公网部署，`dist/` 同时可托管于任意静态服务器。
 - `vite.config.ts` 使用 `base: './'`，构建产物全部为相对资源，可直接放在任意子路径；`index.html` 单入口，无路由依赖，静态刷新返回 200。
-- 发布方式：`npm run build` → 将 `dist/` 交给 Qoder Sites / 静态托管；v0.11.1 发布的 `dist` 与线上 asset 哈希一致（`index-BKDfnFDj.js` / `index-BbatdVOa.css`，SHA256 逐一比对相同；本次仅音频替换，JS/CSS 哈希不变）。
+- 发布方式：`npm run build` → 将 `dist/` 交给 Qoder Sites / 静态托管；v0.11.2 发布的 `dist` 与线上 asset 哈希一致（`index-BKDfnFDj.js` / `index-BbatdVOa.css`，SHA256 逐一比对相同；本次仅音频替换，JS/CSS 哈希不变）。
 - 构建体积基线（gzip）：JS 117.15 KB、CSS 7.31 KB、HTML 0.47 KB。
-- 素材体积：`public/assets/` 24 个 PNG 合计 3,255,274 bytes（3.10 MiB）；BGM 8 个文件合计 3,800,975 bytes（3.63 MiB），单段 ogg 191–442 KB、mp3 641 KB（均 <1.5MB）。
+- 素材体积：`public/assets/` 24 个 PNG 合计 3,255,274 bytes（3.10 MiB）；BGM 8 个文件合计 3,982,975 bytes（3.80 MiB），单段 ogg 263–442 KB、mp3 641 KB（均 <1.5MB）。
 
 ### 终端适配与设计变量（v0.9）
 
@@ -192,9 +193,9 @@ interface NodeVariant {
 - 挂点按 §9：C1-005/006/007 hurt、C1-008/010 hope、C2-003/004/005 strained、C2-007/008 crack、C3-002/004 tense、C3-006/007 resolve。
 - 无 speaker 的旁白/内心节点由 mood 推导 POV 角色（hurt/hope→xiaoman、strained/crack→yuAn、tense/resolve→chenyu）。有选项时桌面立绘移至左上 9%，移动端无选项时上移至 36%，避免被对话/选项遮挡。
 
-**章节 BGM（v0.11.0 / V0.3，ASSET_LIST §10 / §14）**：
-- `public/assets/audio/bgm/{menu,ch1,ch2,ch3}.{ogg,mp3}`：40s 无缝循环；menu 保持 2026-11-27 ambient（未改动）；ch1–ch3 为 V0.3 钢琴主导原创曲：ch1「空椅子」60 BPM A 小调钢琴独奏（短动机+长留白）、ch2「暗涌」72 BPM D 小调钢琴琶音（八分/十六分交替 + 低频脉冲/轻心跳）、ch3「余白」54 BPM C 大调钢琴长音 + 轻合成弦垫。单段 ogg 191–333 KB、mp3 641 KB（均 <1.5MB）；授权登记见 `docs/ASSET_LIST.md` §12。
-- 原创方法：参数化合成（加法钢琴/锯齿弦垫/滤波器/包络/多抽头空间），无采样、无拼接、无外部音源；不模仿既有作品旋律/主题。
+**章节 BGM（v0.11.0 / V0.3 / v0.11.2 音色升级，ASSET_LIST §10 / §14）**：
+- `public/assets/audio/bgm/{menu,ch1,ch2,ch3}.{ogg,mp3}`：40s 无缝循环；menu 保持 2026-11-27 ambient（未改动）；ch1–ch3 为钢琴主导原创曲：ch1「空椅子」60 BPM A 小调（主织体 C4–C5，短动机+长留白）、ch2「暗涌」72 BPM D 小调（C4–E5 琶音，八分/十六分交替 + 短低频脉冲/轻心跳）、ch3「余白」54 BPM C 大调（C4–E5 长音 + 轻合成弦垫，最大留白）。单段 ogg 263–381 KB、mp3 641 KB（均 <1.5MB）；授权登记见 `docs/ASSET_LIST.md` §12。
+- 原创方法（§14.2 选 b）：增强参数化合成——3 个力度层（soft/mid/hard，泛音/衰减/击键差异）、击键噪声层、踏板/共鸣总线、高频泛音与空气层；力度随机 ±8%、时值 ±10ms、乐句 rubato、踏板延音；add9/maj7/sus 色彩和弦；14% 湿声、钢琴偏左/弦垫偏右；100Hz 低切、峰值约 −3dBFS。无采样、无拼接、无外部音源；不模仿既有作品旋律/主题。
 - `src/audio/track.ts`：页面/章节 → BGM key（标题/警告/结局/画廊/回顾 → menu；完整版按 chapter；3min S1→ch1、S2→ch2、S3/S4→ch3、S5→menu）。
 - `src/audio/bgm.ts`：`BgmController` 双轨 `Audio` 循环；首次用户手势解锁，`preload=auto` 懒加载；切换 600ms 线性交叉淡化，默认音量 −18dB（≈0.126）；静音 220ms 淡出并暂停，状态写 `localStorage.eos.bgm.muted`；音频元素挂到隐藏 host 便于状态检查。
 - `src/audio/BgmContext.tsx` 在 `App` 内包裹 `GameProvider`，随 `screen/run.chapter/currentNodeId` 切轨；标题屏右上 `BgmToggle`，游戏菜单增加「BGM：开/关」。
@@ -267,6 +268,7 @@ interface NodeVariant {
 - 桌面重叠修复与结局插画抽查（2026-11-25，公网 v0.10.1）：1440×900 下 C1-021 对话+3 选项重叠 0（对话 410–578、选项 590–823），C2-006 聊天+2 表情包+3 选项重叠 0（聊天 202–578、选项 590–823），C3-006 价格行动窗口 5 选项全部可见；390×844 与 768×1024 回归仍为 0 重叠、无横向滚动。E5 结局卡插画 800×450 正常加载；e1–e5 公网均 200；控制台零报错。
 - 神态差分与 BGM 抽查（2026-11-27，公网 v0.11.0）：C1-006 / C2-007 / C3-006 分别加载 `xiaoman-hurt` / `yuan-crack` / `chenyu-resolve`（768×1024）；390/768/1440 下立绘可见、对话/选项零重叠、无横向滚动。标题 BGM 开关与菜单「BGM：开/关」可用；点击后 `menu.ogg` → `ch1.ogg` 切换，活动音轨 `volume≈0.126`（−18dB）、`loop=true`；静音后 `localStorage.eos.bgm.muted=1`、音轨 paused/volume 0，重载后保持；菜单内切换不关闭菜单。headless 无音频输出，爆音无法听辨；实现为 600ms 从 0 起线性交叉淡化，OGG 循环边界已做 1.5s 交叉淡化。控制台零报错。
 - BGM V0.3 直链与哈希（2026-11-28，公网 v0.11.1）：`ch1.mp3`/`ch2.mp3`/`ch3.mp3` 与 `.ogg` 均 200；本地/公网 SHA256 逐一一致（ch1 mp3 `1d925dd2…`、ch2 mp3 `88108a1c…`、ch3 mp3 `d7e55ea6…`、ch1/ch2/ch3 ogg `359f08fc…`/`7210b1e9…`/`322b460d…`）；menu 哈希未变。三首均 40.0s，峰值 0.57–0.70、RMS 0.10–0.15，单段 <1.5MB；代码零改动，测试 102 项不变。
+- BGM 音色升级验收（2026-11-28，公网 v0.11.2）：`ch1/ch2/ch3` mp3/ogg 均 200；本地/公网 SHA256 一致（ch1 mp3 `db891ed7…`、ch2 `e3f841bf…`、ch3 `6d3e7189…`；ogg `0660a5f4…`/`5e678681…`/`2f79abb4…`）；menu 哈希仍为 `256a7d92…`（未改）。三首 40.0s；峰值约 0.61–0.69（母带 −3dBFS）；低频 <120Hz 占比 0.2–3.2%、中频 250–2k 75–91%、>4k 约 1.1–1.7%、频谱质心 680–770Hz；逐秒 RMS：ch1 0–0.187、ch2 0.041–0.153、ch3 0.007–0.205（有起伏/留白）；循环边界差 ≤0.0042。代码零改动，测试 102 项不变。已知：仍为合成钢琴而非采样库，高频占比偏低；手机外放需产品侧 A/B 最终确认。
 - M0 审查 3 个 UI 问题修复：530px 顶栏徽章压缩聊天窗（两档 @media 缩小）、聊天窗新消息提示（`● 新消息 ×N · 点击播放`）、结局卡判定输入展示改用引擎 `JUDGEMENT_VARS` 单一来源。另修复：走廊场景装饰「红榜」（v0.1 遗留）改「公告栏」；v0.3 清理 `game.css` 残留 `F-14a` 注释。
 
 ## 7. 当前实现范围与边界
@@ -277,7 +279,7 @@ interface NodeVariant {
 - **FR-13 三分钟路径（v0.8 / v0.9.1）**：标题屏入口 B「3 分钟体验」→ S1 群聊（C1-CP1 四选，每项接 1 条独立后果文本节点）→ S2 CropNight（8 个非目标行全量反馈）→ S3 MessageComposer（`sceneNote` 场景说明）→ S4 三线快切（主/副标题去重）→ S5 同一矩阵结算；全部变量 `3min_` 前缀，存档键 `eos_3min_v1`（version 1），不写完整版 `eos.save.v2`/`eos.meta.v2`；S5 固定「这是完整体验的十分之一 / 完整体验里，你还有十二天。」+ 进入完整体验 / 重新选择 3 分钟。
 - **收尾交付（v0.9）**：三档视口真机自测完成；生产构建通过并已用 Qoder Sites 公网发布（公开访问、匿名可玩）；`dist/` 可直接静态部署。发布素材存于 `release-assets/`（游戏内 3 张 + 过程记录 3 张）。
 - **视觉一档（v0.10.1）**：6 立绘 + 5 场景 + 2 表情包 + 5 结局插画已接入，缺图回退可用；素材合计 2,311,560 bytes（2.20 MiB，≤2.5MB）。有选项时 390/768/1440 统一上下堆叠，桌面正文不再被选项覆盖。分享卡未产出；像素字库仍为占位。
-- **P4 第二档（v0.11.0 / v0.11.1）**：6 神态差分接入主线节点（`portraitMood`）；4 段原创 CC0 BGM（40s、ogg+mp3、交叉淡化、−18dB、静音记忆）接入，8 个音频文件合计 3.63 MiB；ch1–ch3 为 V0.3 钢琴主导原创曲，menu 保持 ambient 版。证据物小图（P2）延期，线索面板维持文本卡。
+- **P4 第二档（v0.11.0 / v0.11.1 / v0.11.2）**：6 神态差分接入主线节点（`portraitMood`）；4 段原创 CC0 BGM（40s、ogg+mp3、交叉淡化、−18dB、静音记忆）接入，8 个音频文件合计 3.80 MiB；ch1–ch3 为增强参数化钢琴原创曲（3 力度层/击键/踏板共鸣/高频泛音、人性化演奏、add9/maj7/sus），menu 保持 ambient 版。证据物小图（P2）延期，线索面板维持文本卡。
 - **待实现**：群聊玩家发言深度（PRD-TBD-02）、像素字库、证据物小图（ASSET_LIST §11 P2）、分享卡（OG 图）与 meta、C3-009 的专用尾声数据节点（当前出口由标题/结局屏承担）。
 - **引擎设计已预留**：`settlement` 节点类型（章末结算）、`clues` 条件、meta 图鉴、`variants` 条件文本、`price` 价格标签、`deletedMessages` 存档字段。
 
@@ -302,3 +304,4 @@ interface NodeVariant {
 - 2026-11-25 v0.10.1：桌面重叠修复 + 结局插画接入。`.game-bottom--choices` 从竖屏媒体查询提升为全视口规则：有选项时 1440 桌面同样底部上下堆叠，对话/聊天正文限高内部滚动，选项在下且按剩余空间滚动；场景标题上移、立绘在有选项时上移避让。5 张结局插画（800×450，`public/assets/endings/e1–e5.png`）接入，EndingScreen 按 endingId 渲染并保留缺图隐藏。素材合计 2,311,560 bytes（2.20 MiB，≤2.5MB）。测试 100 项不变；线上 JS `index-CXAgtL7_.js` / CSS `index-CCoQuU-T.css` 与本地 SHA256 一致。
 - 2026-11-27 v0.11.0：P4 第二档。6 张神态差分（`xiaoman-hurt/hope`、`yuan-strained/crack`、`chenyu-tense/resolve`）接入 `portraitMood`，旁白/内心节点可从 mood 推导 POV 立绘；4 段原创 CC0 BGM（menu/ch1/ch2/ch3，40s、ogg+mp3、8 文件 4.22 MiB）与 `BgmController`/`BgmProvider` 接入，600ms 交叉淡化、−18dB、静音记忆、首次用户手势解锁；3min S1→ch1/S2→ch2/S3–S4→ch3/S5→menu。新增神态挂点与 BGM 映射测试（102 项）。证据物小图（P2）延期。线上 JS `index-BKDfnFDj.js` / CSS `index-BbatdVOa.css` 与本地 SHA256 一致。
 - 2026-11-28 v0.11.1：BGM V0.3 钢琴主导重制。ch1「空椅子」60 BPM A 小调钢琴独奏（短动机+长留白）、ch2「暗涌」72 BPM D 小调钢琴琶音（八分/十六分 + 低频脉冲/轻心跳）、ch3「余白」54 BPM C 大调钢琴长音 + 轻合成弦垫；均为参数化合成原创（无采样/拼接/外部音源），同名覆盖 `ch1/ch2/ch3.{ogg,mp3}`，menu 不变，代码零改动。8 个音频文件合计 3,800,975 bytes（3.63 MiB）；三首均 40s、单段 <1.5MB；公网直链 200 且 SHA256 与本地一致；测试 102 项不变。
+- 2026-11-28 v0.11.2：BGM 音色与演奏升级（§14.2 方案 b）。钢琴合成器增加 3 力度层、击键噪声、踏板/共鸣总线、高频泛音/空气层；演奏加入力度 ±8%、时值 ±10ms、乐句 rubato、踏板延音；和声使用 add9/maj7/sus 色彩；混音 14% 湿声、钢琴偏左/弦垫偏右、100Hz 低切、峰值 −3dBFS。ch1–ch3 主织体上移 C4–C6，低频 <120Hz 降至 0.2–3.2%、中频 75–91%；ch2 密集段进入 hard 力度层，ch1/ch3 保留长留白与起伏。8 个音频文件合计 3,982,975 bytes（3.80 MiB）；公网直链 200 且 SHA256 与本地一致；menu 未变；测试 102 项不变。已知项：仍为合成钢琴而非采样库；手机外放需产品侧 A/B 最终确认；本轮后冻结。
